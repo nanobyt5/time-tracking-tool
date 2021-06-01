@@ -1,11 +1,15 @@
 import React, { Component } from "react";
 
-class ReadData extends Component {
+class ReplaceData extends Component {
   constructor() {
     super();
-    this.readHero = this.readHero.bind(this);
+
+    this.replaceHero = this.replaceHero.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+
     this.state = {
       status: null,
+      newData: "",
     };
   }
 
@@ -13,21 +17,45 @@ class ReadData extends Component {
   render() {
     return (
       <div style={this.center}>
-        <button
-          onClick={this.readHero}
-          className="btn btn-secondary btn-sm m-4"
-        >
-          Get Heroes
-        </button>
+        <form onSubmit={this.replaceHero}>
+          <textarea
+            rows="10"
+            cols="30"
+            value={this.state.newData}
+            onChange={this.handleChange}
+          ></textarea>
+          <input
+            type="submit"
+            value="Replace Heroes"
+            className="btn btn-secondary btn-sm m-4"
+          />
+        </form>
+        <br />
         <span className={this.getBadgesClasses()}>{this.displayStatus()}</span>
       </div>
     );
   }
 
   // Functions
-  readHero = () => {
+  replaceHero = (event) => {
+    const encodeFormData = (data) => {
+      return Object.keys(data)
+        .map(
+          (key) => encodeURIComponent(key) + "=" + encodeURIComponent(data[key])
+        )
+        .join("&");
+    };
+
     const requestOptions = {
-      method: "GET",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+      },
+      body: encodeFormData({
+        text: this.state.newData,
+        command: "/replace",
+      }),
     };
 
     fetch(
@@ -45,14 +73,20 @@ class ReadData extends Component {
       })
       .then((data) => {
         this.setState({ status: JSON.stringify(data, null, 4) });
-        console.log("Data Retrieved: " + data);
+        console.log("Data Replaced: " + data);
       })
       .then((json) => console.log(json))
       .catch((err) => {
         this.setState({ status: err.message });
         console.log("Catch: ", err);
       });
+
+    event.preventDefault();
   };
+
+  handleChange(event) {
+    this.setState({ newData: event.target.value });
+  }
 
   displayStatus() {
     const { status } = this.state;
@@ -79,4 +113,4 @@ class ReadData extends Component {
   }
 }
 
-export default ReadData;
+export default ReplaceData;
