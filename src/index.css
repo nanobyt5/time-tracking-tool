@@ -14,9 +14,13 @@ code {
 
 .row {
   display: flex;
+  align-items: center;
 }
+
 #insert,
-#read {
-  flex: 50%;
+#read,
+#replace {
+  float: left;
+  width: 33.33%;
   padding: 5%;
 }
