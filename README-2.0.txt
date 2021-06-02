@@ -1,0 +1,40 @@
+Installation (Windows)
+
+1. Node.js SDK - https://nodejs.org/en/download/
+2. Visual Studio Code - https://code.visualstudio.com/
+3. Simple React Snippets - burkeholland.simple-react-snippets
+4. Prettier Code formatter - esbenp.prettier-vscode
+5. AWS CLI - https://aws.amazon.com/cli/
+
+*Setup
+    AWS CLI (CMD) - aws configure
+                    AWS Access Key ID [None]: 
+                    AWS Secret Access Key [None]: 
+                    Default region name [None]: 
+                    Default output format [None]:
+
+*Project Setup
+    React Project create
+        create-react-app project-name
+        npm start
+
+    Install Bootstrap
+        npm i bootstrap@5.0.1
+
+*Deploy Static Website to S3 (Needs permissions from AWS S3 bucket)
+    npm run build && aws s3 sync build/ s3://bucket-name
+    
+    package.json (Add to NPM scripts)
+        "deploy": "react-scripts build && aws s3 sync build/ s3://bucket-name"
+
+*Start editing
+    public/index.html
+        <div id="title"></div>
+    src/components/
+        add new .jsx
+    src/index.css
+        edit styles here
+    src/index.js
+        import InsertData from './components/insertData';
+        ReactDOM.render(<InsertData />, document.getElementById('insert'));
+    
