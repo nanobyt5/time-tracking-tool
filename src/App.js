@@ -1,12 +1,23 @@
+import React from 'react';
+import Home from './pages/home';
+import Login from './pages/login';
+import Time from './pages/time';
+import Navbar from './pages/navBar';
 import './App.css';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Time Tracking Tool</h1>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <Navbar />
+        <Switch>
+          <Route path="/" exact component={Home} />
+          <Route path="/time" component={Time} />
+          <Route path="/login" component={Login} />
+        </Switch>
+      </div>
+    </Router>
   );
 }
 

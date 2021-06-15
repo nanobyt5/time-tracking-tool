@@ -20,14 +20,15 @@ class ReplaceData extends Component {
         <form onSubmit={this.replaceHero}>
           <textarea
             rows="10"
-            cols="30"
+            cols="15"
             value={this.state.newData}
             onChange={this.handleChange}
+            style={{ whiteSpace: "nowrap" }}
           ></textarea>
           <input
             type="submit"
             value="Replace Heroes"
-            className="btn btn-secondary btn-sm m-4"
+            className="btn btn-secondary btn-sm m-4 row"
           />
         </form>
         <br />
@@ -59,8 +60,8 @@ class ReplaceData extends Component {
     };
 
     fetch(
-      // "http://127.0.0.1:3000/hello",
-      "https://4cate66olg.execute-api.ap-southeast-1.amazonaws.com/default/time-tracking-server",
+      "http://127.0.0.1:3000/hello",
+      // "https://4cate66olg.execute-api.ap-southeast-1.amazonaws.com/default/time-tracking-server",
       requestOptions
     )
       .then((response) => {
