@@ -1,0 +1,50 @@
+[
+  {
+    "Date": "Jun 10, 2021",
+    "Team": "Product Team",
+    "Team Member": "Marcus Ong",
+    "Activity": "Workflow Setup",
+    "Hours": 8,
+    "Tags": "Setup, Workflow"
+  },
+  {
+    "Date": "Jun 9, 2021",
+    "Team": "Tech Team",
+    "Team Member": "Marcus Ong",
+    "Activity": "Workflow Designer",
+    "Hours": 8,
+    "Tags": "Product, Workflow"
+  },
+  {
+    "Date": "May 31, 2021",
+    "Team": "Tech Team",
+    "Team Member": "Marcus Ong",
+    "Activity": "Implement Task Bar",
+    "Hours": 6,
+    "Tags": "Sprint 16, Story Task"
+  },
+  {
+    "Date": "May 31, 2021",
+    "Team": "Tech Team",
+    "Team Member": "Marcus Ong",
+    "Activity": "PBR",
+    "Hours": 2,
+    "Tags": "Meeting"
+  },
+  {
+    "Date": "May 30, 2021",
+    "Team": "Design Team",
+    "Team Member": "Marcus Ong",
+    "Activity": "Product Slides",
+    "Hours": 8,
+    "Tags": "Business, Design"
+  },
+  {
+    "Date": "May 30, 2021",
+    "Team": "QA Team",
+    "Team Member": "Marcus Ong",
+    "Activity": "Testing Sprint 16 Story",
+    "Hours": 8,
+    "Tags": "Sprint 16, Testing"
+  }
+]
