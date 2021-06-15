@@ -18,8 +18,17 @@ Installation (Windows)
         create-react-app project-name
         npm start
 
-    Install Bootstrap
+    Install Bootstrap (CSS)
         npm i bootstrap@5.0.1
+
+    Install MobX (Application state)
+        npm mobx --save
+
+    Install mobx-react (Application Observer)
+        npm install mobx-react
+
+    Install react-router-dom (Pages)
+        npm install react-router-dom
 
 *Deploy Static Website to S3 (Needs permissions from AWS S3 bucket)
     npm run build && aws s3 sync build/ s3://bucket-name
@@ -37,4 +46,3 @@ Installation (Windows)
     src/index.js
         import InsertData from './components/insertData';
         ReactDOM.render(<InsertData />, document.getElementById('insert'));
-    

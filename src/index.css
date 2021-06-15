@@ -11,16 +11,3 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
-
-.row {
-  display: flex;
-  align-items: center;
-}
-
-#insert,
-#read,
-#replace {
-  float: left;
-  width: 33.33%;
-  padding: 5%;
-}
