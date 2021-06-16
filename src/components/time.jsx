@@ -4,9 +4,9 @@ import { FormLabel, Grid } from "@material-ui/core";
 import Select from "react-select";
 import { subDays } from "date-fns";
 import DataGrid, {
-  Column,
+  Column, Export,
   Grouping,
-  GroupItem,
+  GroupItem, Selection,
   Summary
 } from "devextreme-react/data-grid";
 
@@ -14,7 +14,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import 'devextreme/dist/css/dx.common.css';
 import 'devextreme/dist/css/dx.light.css';
 
-import db from "../data.json";
 import DonutChart from "./DonutChart";
 
 const COLUMNS = [
@@ -65,7 +64,8 @@ const SORT_METHODS = [
 
 const INITIAL_GROUP_BY = "activity";
 
-function Time() {
+function Time(props) {
+  const db = props.db;
   const [startDate, setStartDate] = useState(subDays(new Date(), 6));
   const [endDate, setEndDate] = useState(new Date());
   const [team, setTeam] = useState([]);
@@ -90,7 +90,7 @@ function Time() {
     let tagsFilter = tags.length === 0;
 
     for (let t of entryTags) {
-      if (tags.includes(t)) {
+      if (tags.includes(t.trim())) {
         tagsFilter = true;
         break;
       }
@@ -175,6 +175,7 @@ function Time() {
     db.forEach((entry) => {
       const tagsFromEntry = entry["Tags"];
       tagsFromEntry.split(",").forEach((tag) => {
+        tag = tag.trim();
         if (!(tag in lookUp)) {
           tags.push({
             value: tag,
@@ -307,6 +308,7 @@ function Time() {
           wordWrapEnabled={true}
       >
         <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
+        <Selection mode={"single"} />
 
         {columns.map(({ toGroup, dataField, dataType }) =>
             toGroup ? (
@@ -324,6 +326,8 @@ function Time() {
               showInGroupFooter={true}
           />
         </Summary>
+
+        <Export enabled={true} />
       </DataGrid>
   );
 
@@ -348,14 +352,14 @@ function Time() {
   );
 
   return (
-      <Grid container justify={"space-evenly"} style={{ width: "100%", padding: "5px" }}>
-        <div style={{width:"49%"}}>
+      <Grid container justify={"space-evenly"} style={{ padding: "5px" }}>
+        <div style={{ width:"49%" }}>
           {filterOptionsComponent()}
           <div style={{ height: 520, padding: "5px" }}>
             {dataGridComponent()}
           </div>
         </div>
-        <div className="donutChart" style={{width: "49%"}}>
+        <div className="donutChart" style={{ width: "49%" }}>
           <DonutChart data={data} groupBy={groupBy} />
         </div>
       </Grid>
