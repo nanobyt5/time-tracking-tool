@@ -40,7 +40,7 @@ function SprintVelocityChart(props) {
             let currSprint = lookUp[sprint];
             let estimate = currSprint["estimate"];
             let actual = currSprint["actual"];
-            let velocity = estimate / actual;
+            let velocity = estimate / (actual / 4);
 
             if (velocity > maxVelocity) {
                 maxVelocity = velocity;
@@ -131,6 +131,9 @@ function SprintVelocityChart(props) {
                 display: true,
                 position: 'right',
                 max: maxVelocity + 1,
+                ticks: {
+                    stepSize: 1
+                },
                 grid: {
                     drawOnChartArea: false,
                 },
