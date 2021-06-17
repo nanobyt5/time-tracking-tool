@@ -1,5 +1,6 @@
 import React from "react";
 import {Doughnut} from "react-chartjs-2";
+import randomColor from "randomcolor";
 
 function DonutChart(props) {
     let data = props.data;
@@ -15,38 +16,33 @@ function DonutChart(props) {
             let hours = entry["hours"];
 
             if (!(label in lookUp)) {
-                lookUp[label] = hours;
+                lookUp[label] = parseInt(hours);
+                labels.push(label);
             } else {
-                lookUp[label] += hours;
+                lookUp[label] += parseInt(hours);
             }
         })
 
-        for (let entry in lookUp) {
-            labels.push(entry);
-            chartData.push(lookUp[entry]);
-        }
+        labels.sort();
+
+        labels.forEach(label => {
+            chartData.push(lookUp[label]);
+        })
     }
+
     getChartData();
+
+    const createColours = () => {
+        let arr = [...labels];
+        return arr.map(() => randomColor());
+    }
 
     const state = {
         labels: labels,
         datasets: [
             {
                 label: 'Sorted By',
-                backgroundColor: [
-                    '#B21F00',
-                    '#C9DE00',
-                    '#2FDE00',
-                    '#00A6B4',
-                    '#6800B4'
-                ],
-                hoverBackgroundColor: [
-                    '#501800',
-                    '#4B5000',
-                    '#175000',
-                    '#003350',
-                    '#35014F'
-                ],
+                backgroundColor: createColours(),
                 data: chartData
             }
         ]
@@ -54,21 +50,12 @@ function DonutChart(props) {
 
     return(
         <div>
-            <div className="chart" style={{height:"500px"}}>
+            <div className="chart" style={{ height:"500px", padding:"5px" }}>
                 <Doughnut
                     data={state}
                     options={{
                         radius:150,
                         height:200,
-                        title:{
-                            display:false,
-                            text:'Average Rainfall per month',
-                            fontSize:20
-                        },
-                        legend:{
-                            display:true,
-                            position:'left'
-                        },
                         maintainAspectRatio:false
                     }}
                     type={'doughnut'}
