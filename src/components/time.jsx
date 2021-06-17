@@ -11,8 +11,6 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 
 import "react-datepicker/dist/react-datepicker.css";
-import 'devextreme/dist/css/dx.common.css';
-import 'devextreme/dist/css/dx.light.css';
 
 import DonutChart from "./DonutChart";
 
@@ -81,6 +79,10 @@ function Time(props) {
     const user = entry["Team Member"];
     const entryActivity = entry["Activity"];
     const entryTags = entry["Tags"].split(",");
+
+    if (!date || !entryTeam || !user || !entryActivity) {
+      return false;
+    }
 
     let dateFilter = date <= endDate && date >= startDate;
     let teamFilter = team.length === 0 || team.includes(entryTeam);
@@ -174,8 +176,12 @@ function Time(props) {
 
     db.forEach((entry) => {
       const tagsFromEntry = entry["Tags"];
-      tagsFromEntry.split(",").forEach((tag) => {
+      tagsFromEntry.split(",").forEach(tag => {
         tag = tag.trim();
+        if (tag === "") {
+          return;
+        }
+
         if (!(tag in lookUp)) {
           tags.push({
             value: tag,
@@ -282,7 +288,13 @@ function Time(props) {
 
   const selectComponentGrid = () => (
       <Grid container justify={"space-evenly"}>
-        {selectMultiComponent("teamForm", "Teams:", "teams", allTeams, changeTeam)}
+        {selectMultiComponent(
+            "teamForm",
+            "Teams:",
+            "teams",
+            allTeams,
+            changeTeam
+        )}
         {selectMultiComponent(
             "userForm",
             "User:",
@@ -352,10 +364,10 @@ function Time(props) {
   );
 
   return (
-      <Grid container justify={"space-evenly"} style={{ padding: "5px" }}>
+      <Grid container justify={"space-evenly"} >
         <div style={{ width:"49%" }}>
           {filterOptionsComponent()}
-          <div style={{ height: 520, padding: "5px" }}>
+          <div style={{ padding: "5px" }}>
             {dataGridComponent()}
           </div>
         </div>

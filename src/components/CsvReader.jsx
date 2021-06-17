@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import TimeTracking from "./time";
+import SprintVelocityChart from "./SprintVelocityChart";
+import Time from "./time";
+
+import 'devextreme/dist/css/dx.common.css';
+import 'devextreme/dist/css/dx.light.css';
 
 // credit: https://www.cluemediator.com/read-csv-file-in-react
 function CsvReader() {
@@ -66,7 +70,8 @@ function CsvReader() {
                     onChange={handleFileUpload}
                 />
             </div>
-            <TimeTracking db={data} />
+            <Time db={data} />
+            <SprintVelocityChart db={data} />
         </div>
     );
 }

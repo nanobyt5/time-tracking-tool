@@ -149,7 +149,7 @@ function SprintVelocityChart(props) {
     };
 
     const dataGridComponent = () => (
-        <div className="table" style={{ width:"39%", padding:"12px" }} >
+        <div style={{ width:"39%", padding:"11px" }} >
             <DataGrid
                 dataSource={tableData}
                 showBorders={true}
@@ -170,7 +170,6 @@ function SprintVelocityChart(props) {
                             alignment={"center"}
                         />
                     )
-
                 ))}
             </DataGrid>
         </div>
