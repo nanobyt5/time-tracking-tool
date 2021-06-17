@@ -52,15 +52,22 @@ const COLUMNS = [
   }
 ];
 
-const SORT_METHODS = [
-  {value: "", label: "All" },
+const GROUP_METHODS = [
+  { value: "", label: "All" },
   { value: "team", label: "Team" },
   { value: "teamMember", label: "User" },
   { value: "activity", label: "Activity" },
   { value: "tags", label: "Tags" },
 ];
 
+const CHART_TYPES = [
+  { value: "bar", label: "Bar Chart" },
+  { value: "doughnut", label: "Doughnut Chart" },
+];
+
 const INITIAL_GROUP_BY = "activity";
+
+const INITIAL_CHART_TYPE = "doughnut";
 
 function Time(props) {
   const db = props.db;
@@ -71,6 +78,7 @@ function Time(props) {
   const [activity, setActivity] = useState([]);
   const [tags, setTags] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
+  const [chartType, setChartType] = useState(INITIAL_CHART_TYPE)
   const [columns, setColumns] = useState(COLUMNS);
 
   const isEntryValid = (entry) => {
@@ -149,6 +157,10 @@ function Time(props) {
 
   const changeSortMethod = ({ value }) => {
     setGroupBy(value);
+  };
+
+  const changeChartType = ({ value }) => {
+    setChartType(value);
   };
 
   const getAllFromDb = (toGet) => {
@@ -344,15 +356,22 @@ function Time(props) {
   );
 
   const groupByForm = () => (
-      <div style={{ display:"flex", justifyContent:"center" }}>
+      <Grid container justify={"space-evenly"}>
         {selectSingleComponent(
             "sortForm",
             "Group By:",
             "groupBy",
-            SORT_METHODS,
+            GROUP_METHODS,
             changeSortMethod
         )}
-      </div>
+        {selectSingleComponent(
+            "chartTypeForm",
+            "Chart Type:",
+            "chartType",
+            CHART_TYPES,
+            changeChartType
+        )}
+      </Grid>
   );
 
   const filterOptionsComponent = () => (
@@ -372,7 +391,13 @@ function Time(props) {
           </div>
         </div>
         <div className="donutChart" style={{ width: "49%" }}>
-          <DonutChart data={data} groupBy={groupBy} />
+          <DonutChart
+              data={data}
+              groupBy={groupBy}
+              chartType={chartType}
+              startDate={startDate}
+              endDate={endDate}
+          />
         </div>
       </Grid>
   );
