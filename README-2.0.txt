@@ -30,6 +30,16 @@ Installation (Windows)
     Install react-router-dom (Pages)
         npm install react-router-dom
 
+    npm i react-datepicker
+    npm i @material-ui/core
+    npm i react-select
+    npm i date-fns
+    npm install devextreme@21.1 devextreme-react@21.1
+    npm install react-chartjs-2 chart.js
+    npm i aws-sdk
+    npm i xlsx
+    npm i randomcolor
+
 *Deploy Static Website to S3 (Needs permissions from AWS S3 bucket)
     npm run build && aws s3 sync build/ s3://bucket-name
     
