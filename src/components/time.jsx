@@ -6,8 +6,7 @@ import { subDays } from "date-fns";
 import DataGrid, {
   Column, Export,
   Grouping,
-  GroupItem, Selection,
-  Summary
+  GroupItem, Scrolling, Selection, Summary
 } from "devextreme-react/data-grid";
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -327,12 +326,15 @@ function Time(props) {
 
   const dataGridComponent = () => (
       <DataGrid
+          height={"56vh"}
           dataSource={data}
           showBorders={true}
           wordWrapEnabled={true}
       >
         <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
         <Selection mode={"single"} />
+
+        <Scrolling mode={"infinite"} />
 
         {columns.map(({ toGroup, dataField, dataType }) =>
             toGroup ? (

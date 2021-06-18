@@ -76,7 +76,7 @@ function DonutChart(props) {
 
     return(
         <div>
-            <div className="chart" style={{ height:"500px", padding:"5px" }}>
+            <div className="chart" style={{ height:"80vh" }}>
                 {getChart()}
             </div>
         </div>
