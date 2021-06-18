@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { URLServer } from "../stores/urlServer";
 
 class ReplaceData extends Component {
   constructor() {
@@ -59,11 +60,7 @@ class ReplaceData extends Component {
       }),
     };
 
-    fetch(
-      "http://127.0.0.1:3000/hello",
-      // "https://4cate66olg.execute-api.ap-southeast-1.amazonaws.com/default/time-tracking-server",
-      requestOptions
-    )
+    fetch(URLServer, requestOptions)
       .then((response) => {
         if (!response.ok) {
           return response.json().then((json) => {
