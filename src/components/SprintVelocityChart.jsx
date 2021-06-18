@@ -1,6 +1,7 @@
 import React from "react";
-import {Bar} from "react-chartjs-2";
+import {Bar, Line} from "react-chartjs-2";
 import DataGrid, {Column, Scrolling} from "devextreme-react/data-grid";
+import {Button} from "@material-ui/core";
 
 const COLUMNS = [
     {
@@ -27,6 +28,11 @@ const COLUMNS = [
 
 function SprintVelocityChart(props) {
     let data = props.db.filter(entry => entry["Team"] === "Tech Team");
+    const [chartType, setChartType] = React.useState(true);
+
+    const swapCharts = () => {
+        setChartType(!chartType);
+    };
 
     let sprints = [];
     let estimateHours = [];
@@ -96,32 +102,65 @@ function SprintVelocityChart(props) {
 
     getChartData();
 
+    const getDataSets = () => (
+        chartType ?
+            [
+                {
+                    type: 'line',
+                    label: 'Sprint Velocity',
+                    data: sprintVelocity,
+                    yAxisID: 'line',
+                    backgroundColor: "rgb(255,99,26)",
+                    borderColor: "rgb(255,99,26)"
+                },
+                {
+                    type: 'bar',
+                    label: 'Estimated Hours',
+                    data: estimateHours,
+                    yAxisID: 'bar',
+                    backgroundColor: "rgb(26,228,255)",
+                    borderColor: "rgb(26,228,255)"
+                },
+                {
+                    type: 'bar',
+                    label: 'Actual Hours',
+                    data:  actualHours,
+                    yAxisID: 'bar',
+                    backgroundColor: "rgb(26,83,255)",
+                    borderColor: "rgb(26,83,255)"
+                },
+            ] :
+            [
+                {
+                    type: 'line',
+                    label: 'Estimated Hours',
+                    data: estimateHours,
+                    yAxisID: 'bar',
+                    backgroundColor: "rgb(26,228,255)",
+                    borderColor: "rgb(26,228,255)"
+                },
+                {
+                    type: 'line',
+                    label: 'Actual Hours',
+                    data:  actualHours,
+                    yAxisID: 'bar',
+                    backgroundColor: "rgb(26,83,255)",
+                    borderColor: "rgb(26,83,255)"
+                },
+                {
+                    type: 'bar',
+                    label: 'Sprint Velocity',
+                    data: sprintVelocity,
+                    yAxisID: 'line',
+                    backgroundColor: "rgb(255,99,26)",
+                    borderColor: "rgb(255,99,26)"
+                }
+            ]
+    )
+
     const state = {
         labels: sprints,
-        datasets: [
-            {
-                type: 'line',
-                label: 'Sprint Velocity',
-                data: sprintVelocity,
-                yAxisID: 'line',
-                backgroundColor: "rgb(255,99,26)",
-                borderColor: "rgb(255,99,26)"
-            },
-            {
-                type: 'bar',
-                label: 'Estimated Hours',
-                data: estimateHours,
-                yAxisID: 'bar',
-                backgroundColor: "rgb(26,228,255)",
-            },
-            {
-                type: 'bar',
-                label: 'Actual Hours',
-                data:  actualHours,
-                yAxisID: 'bar',
-                backgroundColor: "rgb(26,83,255)",
-            },
-        ]
+        datasets: getDataSets()
     }
 
     const options = {
@@ -178,6 +217,13 @@ function SprintVelocityChart(props) {
                     )
                 ))}
             </DataGrid>
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={swapCharts}
+            >
+                Swap
+            </Button>
         </div>
     );
 
