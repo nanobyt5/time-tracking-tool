@@ -1,5 +1,5 @@
 import React from "react";
-import {Bar, Doughnut, Line} from "react-chartjs-2";
+import {Bar, Doughnut} from "react-chartjs-2";
 import randomColor from "randomcolor";
 
 function DonutChart(props) {

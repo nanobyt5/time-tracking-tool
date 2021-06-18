@@ -1,6 +1,6 @@
 import React from "react";
 import {Bar} from "react-chartjs-2";
-import DataGrid, {Column} from "devextreme-react/data-grid";
+import DataGrid, {Column, Scrolling} from "devextreme-react/data-grid";
 
 const COLUMNS = [
     {
@@ -154,10 +154,13 @@ function SprintVelocityChart(props) {
     const dataGridComponent = () => (
         <div style={{ width:"39%", padding:"11px" }} >
             <DataGrid
+                height={"30vh"}
                 dataSource={tableData}
                 showBorders={true}
                 wordWrapEnabled={true}
             >
+                <Scrolling mode={"infinite"} />
+
                 {COLUMNS.map(({dataField, dataType, toGroup}) => (
                     toGroup ? (
                         <Column
