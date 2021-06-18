@@ -206,10 +206,11 @@ function Time(props) {
       });
     });
 
-    return tags.sort().map(entry => ({
-      value: entry,
-      label: entry
-    }));
+    return tags.sort()
+        .map(entry => ({
+          value: entry,
+          label: entry
+        }));
   };
 
   const allTeams = getAllFromDb("Team");
