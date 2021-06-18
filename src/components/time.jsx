@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import DatePicker from "react-datepicker";
-import { FormLabel, Grid } from "@material-ui/core";
+import {FormLabel, Grid} from "@material-ui/core";
 import Select from "react-select";
-import { subDays } from "date-fns";
+import {subDays} from "date-fns";
 import DataGrid, {
-  Column, Export,
+  Column,
+  Export,
   Grouping,
-  GroupItem, Scrolling, Selection, Summary
+  GroupItem,
+  Scrolling,
+  Selection,
+  Summary
 } from "devextreme-react/data-grid";
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -53,10 +57,10 @@ const COLUMNS = [
 
 const GROUP_METHODS = [
   { value: "", label: "All" },
-  { value: "team", label: "Team" },
-  { value: "teamMember", label: "User" },
   { value: "activity", label: "Activity" },
   { value: "tags", label: "Tags" },
+  { value: "team", label: "Team" },
+  { value: "teamMember", label: "User" },
 ];
 
 const CHART_TYPES = [
@@ -170,15 +174,17 @@ function Time(props) {
       const entryElement = entry[toGet];
 
       if (!(entryElement in lookUp)) {
-        toGets.push({
-          value: entryElement,
-          label: entryElement,
-        });
+        toGets.push(entryElement);
         lookUp[entryElement] = 1;
       }
     });
 
-    return toGets;
+    return toGets.sort().map(entry => (
+        {
+          value: entry,
+          label: entry
+        }
+    ));
   };
 
   const getAllTags = () => {
@@ -194,16 +200,16 @@ function Time(props) {
         }
 
         if (!(tag in lookUp)) {
-          tags.push({
-            value: tag,
-            label: tag,
-          });
+          tags.push(tag);
           lookUp[tag] = 1;
         }
       });
     });
 
-    return tags;
+    return tags.sort().map(entry => ({
+      value: entry,
+      label: entry
+    }));
   };
 
   const allTeams = getAllFromDb("Team");
