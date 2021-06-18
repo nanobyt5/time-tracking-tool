@@ -388,7 +388,7 @@ function Time(props) {
       <Grid container justify={"space-evenly"} >
         <div style={{ width:"49%" }}>
           {filterOptionsComponent()}
-          <div style={{ padding: "5px" }}>
+          <div style={{ margin: "5px" }}>
             {dataGridComponent()}
           </div>
         </div>

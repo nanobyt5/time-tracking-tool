@@ -43,7 +43,9 @@ function DonutChart(props) {
         datasets: [
             {
                 label: 'Chart',
-                backgroundColor: createColours(),
+                backgroundColor: createColours({
+                    luminosity: 'light'
+                }),
                 data: chartData
             }
         ]
@@ -65,8 +67,6 @@ function DonutChart(props) {
                         data={state}
                         options={{
                             radius: 150,
-                            height: 200,
-                            maintainAspectRatio: false
                         }}
                         type={'doughnut'}
                     />
@@ -76,7 +76,12 @@ function DonutChart(props) {
 
     return(
         <div>
-            <div className="chart" style={{ height:"80vh" }}>
+            <div className="chart" style={{
+                height: "80vh",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center"
+            }}>
                 {getChart()}
             </div>
         </div>

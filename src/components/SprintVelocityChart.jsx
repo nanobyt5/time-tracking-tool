@@ -192,7 +192,7 @@ function SprintVelocityChart(props) {
     );
 
     return (
-        <div style={{ display:"flex", justifyContent:"space-evenly" }}>
+        <div style={{ display:"flex", justifyContent:"space-evenly", margin:"5px" }}>
             {dataGridComponent()}
             {barComponent()}
         </div>
