@@ -1,5 +1,5 @@
 import React from "react";
-import {Bar, Line} from "react-chartjs-2";
+import {Bar} from "react-chartjs-2";
 import DataGrid, {Column, Scrolling} from "devextreme-react/data-grid";
 import {Button} from "@material-ui/core";
 
