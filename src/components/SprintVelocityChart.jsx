@@ -217,18 +217,20 @@ function SprintVelocityChart(props) {
                     )
                 ))}
             </DataGrid>
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={swapCharts}
-            >
-                Swap
-            </Button>
+            <div style={{ display:"flex", justifyContent:"center", margin:"5px" }}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={swapCharts}
+                >
+                    Swap
+                </Button>
+            </div>
         </div>
     );
 
     const barComponent = () => (
-        <div className="chart" style={{ width:"60%", display:"flex", justifyContent:"center", height:"500px"}}>
+        <div className="chart" style={{ width:"60%", height:"500px" }}>
             <Bar
                 data={state}
                 options={options}
