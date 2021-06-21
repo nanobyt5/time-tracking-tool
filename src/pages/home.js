@@ -2,6 +2,7 @@ import React from 'react';
 import InsertData from '../components/insertData';
 import ReadData from '../components/readData';
 import ReplaceData from '../components/replaceData';
+import S3File from '../components/s3File';
 
 function Home() {
     return (
@@ -12,6 +13,7 @@ function Home() {
                 <div id="read"><ReadData /></div>
                 <div id="replace"><ReplaceData /></div>
             </div>
+            <S3File />
         </div>
     );
 }
