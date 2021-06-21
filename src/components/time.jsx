@@ -14,8 +14,11 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 
 import "react-datepicker/dist/react-datepicker.css";
+import 'devextreme/dist/css/dx.common.css';
+import 'devextreme/dist/css/dx.light.css';
 
 import DonutChart from "./donutChart";
+import * as XLSX from "xlsx";
 
 const COLUMNS = [
   {
@@ -72,8 +75,8 @@ const INITIAL_GROUP_BY = "activity";
 
 const INITIAL_CHART_TYPE = "doughnut";
 
-function Time(props) {
-  const db = props.db;
+function Time() {
+  const [db, setDb] = useState([]);
   const [startDate, setStartDate] = useState(subDays(new Date(), 6));
   const [endDate, setEndDate] = useState(new Date());
   const [team, setTeam] = useState([]);
@@ -114,21 +117,26 @@ function Time(props) {
     );
   };
 
-  let data = [];
-  let i = 1;
-  db.forEach((entry) => {
-    if (isEntryValid(entry)) {
-      data.push({
-        id: i++,
-        date: new Date(entry["Date"]),
-        team: entry["Team"],
-        teamMember: entry["Team Member"],
-        activity: entry["Activity"],
-        hours: entry["Hours"],
-        tags: entry["Tags"],
-      });
-    }
-  });
+  const getData = () => {
+    let i = 1;
+    let tempData = [];
+    db.forEach((entry) => {
+      if (isEntryValid(entry)) {
+        tempData.push({
+          id: i++,
+          date: new Date(entry["Date"]),
+          team: entry["Team"],
+          teamMember: entry["Team Member"],
+          activity: entry["Activity"],
+          hours: entry["Hours"],
+          tags: entry["Tags"],
+        });
+      }
+    });
+
+    return tempData;
+  }
+  let data = getData();
 
   const changeStartDate = (date) => {
     setStartDate(date);
@@ -165,6 +173,70 @@ function Time(props) {
   const changeChartType = ({ value }) => {
     setChartType(value);
   };
+
+  const processData = dataString => {
+    const dataStringLines = dataString.split(/\r\n|\n/);
+    const headers = dataStringLines[0].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
+
+    const list = [];
+    let tempStartDate = startDate;
+    let tempEndDate = endDate;
+    for (let i = 1; i < dataStringLines.length; i++) {
+      const row = dataStringLines[i].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
+      if (headers && row.length === headers.length) {
+        const obj = {};
+        for (let j = 0; j < headers.length; j++) {
+          let d = row[j];
+          if (d.length > 0) {
+            if (d[0] === '"')
+              d = d.substring(1, d.length - 1);
+            if (d[d.length - 1] === '"')
+              d = d.substring(d.length - 2, 1);
+          }
+          if (headers[j]) {
+            obj[headers[j]] = d;
+          }
+        }
+
+        // remove the blank rows
+        if (Object.values(obj).filter(x => x).length > 0) {
+          let date = new Date(obj["Date"]);
+
+          if (date < tempStartDate) {
+            tempStartDate = date;
+          }
+
+          if (date > tempEndDate) {
+            tempEndDate = date;
+          }
+
+          list.push(obj);
+        }
+      }
+    }
+
+    setStartDate(tempStartDate);
+    setEndDate(tempEndDate);
+    setDb(list);
+  }
+
+  // handle file upload
+  const handleFileUpload = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      /* Parse data */
+      const bStr = evt.target.result;
+      const wb = XLSX.read(bStr, { type: 'binary' });
+      /* Get first worksheet */
+      const wsName = wb.SheetNames[0];
+      const ws = wb.Sheets[wsName];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+      processData(data);
+    };
+    reader.readAsBinaryString(file);
+  }
 
   const getAllFromDb = (toGet) => {
     const lookUp = {};
@@ -260,6 +332,16 @@ function Time(props) {
             onChange={onChange}
         />
       </div>
+  );
+
+  const uploadFileComponent = () => (
+    <div style={{ display:"flex", justifyContent:"center", margin:"5px" }}>
+      <input
+          type="file"
+          accept=".csv,.xlsx,.xls"
+          onChange={handleFileUpload}
+      />
+    </div>
   );
 
   const datePickerFormComponent = (
@@ -394,6 +476,7 @@ function Time(props) {
   return (
       <Grid container justify={"space-evenly"} >
         <div style={{ width:"49%" }}>
+          {uploadFileComponent()}
           {filterOptionsComponent()}
           <div style={{ margin: "5px" }}>
             {dataGridComponent()}
