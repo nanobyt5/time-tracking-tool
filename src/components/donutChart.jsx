@@ -66,7 +66,7 @@ function DonutChart(props) {
                     <Doughnut
                         data={state}
                         options={{
-                            radius: 250,
+                            radius: "225",
                         }}
                         type={'doughnut'}
                     />
@@ -77,10 +77,9 @@ function DonutChart(props) {
     return(
         <div>
             <div className="chart" style={{
-                height: "80vh",
                 display: "flex",
                 flexDirection: "column",
-                justifyContent: "center"
+                justifyContent: "center",
             }}>
                 {getChart()}
             </div>
