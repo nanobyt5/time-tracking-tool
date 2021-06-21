@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import SprintVelocityChart from "./SprintVelocityChart";
+import SprintVelocityChart from "./sprintVelocityChart";
 import Time from "./time";
 
 import 'devextreme/dist/css/dx.common.css';

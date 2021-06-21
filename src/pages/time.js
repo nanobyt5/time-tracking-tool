@@ -1,5 +1,5 @@
 import React from "react";
-import CsvReaderComponent from "../components/CsvReader";
+import CsvReaderComponent from "../components/csvReader";
 
 function Time() {
     return (

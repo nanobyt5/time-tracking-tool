@@ -15,7 +15,7 @@ import DataGrid, {
 
 import "react-datepicker/dist/react-datepicker.css";
 
-import DonutChart from "./DonutChart";
+import DonutChart from "./donutChart";
 
 const COLUMNS = [
   {

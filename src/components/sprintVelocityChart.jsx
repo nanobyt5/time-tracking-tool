@@ -240,9 +240,14 @@ function SprintVelocityChart(props) {
     );
 
     return (
-        <div style={{ display:"flex", justifyContent:"space-evenly", margin:"5px" }}>
-            {dataGridComponent()}
-            {barComponent()}
+        <div>
+            <div className="header" >
+                <h2>Sprint Velocity</h2>
+            </div>
+            <div style={{ display:"flex", justifyContent:"space-evenly", margin:"5px" }}>
+                {dataGridComponent()}
+                {barComponent()}
+            </div>
         </div>
     )
 }

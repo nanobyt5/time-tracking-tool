@@ -66,7 +66,7 @@ function DonutChart(props) {
                     <Doughnut
                         data={state}
                         options={{
-                            radius: 150,
+                            radius: 250,
                         }}
                         type={'doughnut'}
                     />

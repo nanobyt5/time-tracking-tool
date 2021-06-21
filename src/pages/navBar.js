@@ -17,6 +17,9 @@ function NavBar() {
                 <Link style={navStyle} to="/time">
                     <li>Time Spent</li>
                 </Link>
+                <Link style={navStyle} to="/sprint_velocity">
+                    <li>Sprint Velocity</li>
+                </Link>
                 <Link style={navStyle} to="/login">
                     <li>Login</li>
                 </Link>
