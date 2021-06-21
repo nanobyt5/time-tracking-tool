@@ -1,18 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import DatePicker from "react-datepicker";
-import { FormLabel, Grid } from "@material-ui/core";
+import {FormLabel, Grid} from "@material-ui/core";
 import Select from "react-select";
-import { subDays } from "date-fns";
+import {subDays} from "date-fns";
 import DataGrid, {
-  Column, Export,
+  Column,
+  Export,
   Grouping,
-  GroupItem, Selection,
+  GroupItem,
+  Scrolling,
+  Selection,
   Summary
 } from "devextreme-react/data-grid";
 
 import "react-datepicker/dist/react-datepicker.css";
+import 'devextreme/dist/css/dx.common.css';
+import 'devextreme/dist/css/dx.light.css';
 
-import DonutChart from "./DonutChart";
+import DonutChart from "./donutChart";
+import * as XLSX from "xlsx";
 
 const COLUMNS = [
   {
@@ -52,18 +58,25 @@ const COLUMNS = [
   }
 ];
 
-const SORT_METHODS = [
-  {value: "", label: "All" },
-  { value: "team", label: "Team" },
-  { value: "teamMember", label: "User" },
+const GROUP_METHODS = [
+  { value: "", label: "All" },
   { value: "activity", label: "Activity" },
   { value: "tags", label: "Tags" },
+  { value: "team", label: "Team" },
+  { value: "teamMember", label: "User" },
+];
+
+const CHART_TYPES = [
+  { value: "bar", label: "Bar Chart" },
+  { value: "doughnut", label: "Doughnut Chart" },
 ];
 
 const INITIAL_GROUP_BY = "activity";
 
-function Time(props) {
-  const db = props.db;
+const INITIAL_CHART_TYPE = "doughnut";
+
+function Time() {
+  const [db, setDb] = useState([]);
   const [startDate, setStartDate] = useState(subDays(new Date(), 6));
   const [endDate, setEndDate] = useState(new Date());
   const [team, setTeam] = useState([]);
@@ -71,6 +84,7 @@ function Time(props) {
   const [activity, setActivity] = useState([]);
   const [tags, setTags] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
+  const [chartType, setChartType] = useState(INITIAL_CHART_TYPE)
   const [columns, setColumns] = useState(COLUMNS);
 
   const isEntryValid = (entry) => {
@@ -103,21 +117,26 @@ function Time(props) {
     );
   };
 
-  let data = [];
-  let i = 1;
-  db.forEach((entry) => {
-    if (isEntryValid(entry)) {
-      data.push({
-        id: i++,
-        date: new Date(entry["Date"]),
-        team: entry["Team"],
-        teamMember: entry["Team Member"],
-        activity: entry["Activity"],
-        hours: entry["Hours"],
-        tags: entry["Tags"],
-      });
-    }
-  });
+  const getData = () => {
+    let i = 1;
+    let tempData = [];
+    db.forEach((entry) => {
+      if (isEntryValid(entry)) {
+        tempData.push({
+          id: i++,
+          date: new Date(entry["Date"]),
+          team: entry["Team"],
+          teamMember: entry["Team Member"],
+          activity: entry["Activity"],
+          hours: entry["Hours"],
+          tags: entry["Tags"],
+        });
+      }
+    });
+
+    return tempData;
+  }
+  let data = getData();
 
   const changeStartDate = (date) => {
     setStartDate(date);
@@ -151,6 +170,74 @@ function Time(props) {
     setGroupBy(value);
   };
 
+  const changeChartType = ({ value }) => {
+    setChartType(value);
+  };
+
+  const processData = dataString => {
+    const dataStringLines = dataString.split(/\r\n|\n/);
+    const headers = dataStringLines[0].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
+
+    const list = [];
+    let tempStartDate = startDate;
+    let tempEndDate = endDate;
+    for (let i = 1; i < dataStringLines.length; i++) {
+      const row = dataStringLines[i].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
+      if (headers && row.length === headers.length) {
+        const obj = {};
+        for (let j = 0; j < headers.length; j++) {
+          let d = row[j];
+          if (d.length > 0) {
+            if (d[0] === '"')
+              d = d.substring(1, d.length - 1);
+            if (d[d.length - 1] === '"')
+              d = d.substring(d.length - 2, 1);
+          }
+          if (headers[j]) {
+            obj[headers[j]] = d;
+          }
+        }
+
+        // remove the blank rows
+        if (Object.values(obj).filter(x => x).length > 0) {
+          let date = new Date(obj["Date"]);
+
+          if (date < tempStartDate) {
+            tempStartDate = date;
+          }
+
+          if (date > tempEndDate) {
+            tempEndDate = date;
+          }
+
+          list.push(obj);
+        }
+      }
+    }
+
+    setStartDate(tempStartDate);
+    setEndDate(tempEndDate);
+    setDb(list);
+  }
+
+  // handle file upload
+  const handleFileUpload = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      /* Parse data */
+      const bStr = evt.target.result;
+      const wb = XLSX.read(bStr, { type: 'binary' });
+      /* Get first worksheet */
+      const wsName = wb.SheetNames[0];
+      const ws = wb.Sheets[wsName];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+      processData(data);
+    };
+    reader.readAsBinaryString(file);
+  }
+
   const getAllFromDb = (toGet) => {
     const lookUp = {};
     const toGets = [];
@@ -159,15 +246,17 @@ function Time(props) {
       const entryElement = entry[toGet];
 
       if (!(entryElement in lookUp)) {
-        toGets.push({
-          value: entryElement,
-          label: entryElement,
-        });
+        toGets.push(entryElement);
         lookUp[entryElement] = 1;
       }
     });
 
-    return toGets;
+    return toGets.sort().map(entry => (
+        {
+          value: entry,
+          label: entry
+        }
+    ));
   };
 
   const getAllTags = () => {
@@ -183,16 +272,17 @@ function Time(props) {
         }
 
         if (!(tag in lookUp)) {
-          tags.push({
-            value: tag,
-            label: tag,
-          });
+          tags.push(tag);
           lookUp[tag] = 1;
         }
       });
     });
 
-    return tags;
+    return tags.sort()
+        .map(entry => ({
+          value: entry,
+          label: entry
+        }));
   };
 
   const allTeams = getAllFromDb("Team");
@@ -242,6 +332,16 @@ function Time(props) {
             onChange={onChange}
         />
       </div>
+  );
+
+  const uploadFileComponent = () => (
+    <div style={{ display:"flex", justifyContent:"center", margin:"5px" }}>
+      <input
+          type="file"
+          accept=".csv,.xlsx,.xls"
+          onChange={handleFileUpload}
+      />
+    </div>
   );
 
   const datePickerFormComponent = (
@@ -315,12 +415,15 @@ function Time(props) {
 
   const dataGridComponent = () => (
       <DataGrid
+          height={"56vh"}
           dataSource={data}
           showBorders={true}
           wordWrapEnabled={true}
       >
         <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
         <Selection mode={"single"} />
+
+        <Scrolling mode={"infinite"} />
 
         {columns.map(({ toGroup, dataField, dataType }) =>
             toGroup ? (
@@ -344,15 +447,22 @@ function Time(props) {
   );
 
   const groupByForm = () => (
-      <div style={{ display:"flex", justifyContent:"center" }}>
+      <Grid container justify={"space-evenly"}>
         {selectSingleComponent(
             "sortForm",
             "Group By:",
             "groupBy",
-            SORT_METHODS,
+            GROUP_METHODS,
             changeSortMethod
         )}
-      </div>
+        {selectSingleComponent(
+            "chartTypeForm",
+            "Chart Type:",
+            "chartType",
+            CHART_TYPES,
+            changeChartType
+        )}
+      </Grid>
   );
 
   const filterOptionsComponent = () => (
@@ -366,13 +476,20 @@ function Time(props) {
   return (
       <Grid container justify={"space-evenly"} >
         <div style={{ width:"49%" }}>
+          {uploadFileComponent()}
           {filterOptionsComponent()}
-          <div style={{ padding: "5px" }}>
+          <div style={{ margin: "5px" }}>
             {dataGridComponent()}
           </div>
         </div>
         <div className="donutChart" style={{ width: "49%" }}>
-          <DonutChart data={data} groupBy={groupBy} />
+          <DonutChart
+              data={data}
+              groupBy={groupBy}
+              chartType={chartType}
+              startDate={startDate}
+              endDate={endDate}
+          />
         </div>
       </Grid>
   );

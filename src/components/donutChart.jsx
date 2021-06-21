@@ -1,10 +1,11 @@
 import React from "react";
-import {Doughnut} from "react-chartjs-2";
+import {Bar, Doughnut} from "react-chartjs-2";
 import randomColor from "randomcolor";
 
 function DonutChart(props) {
     let data = props.data;
     let groupBy = props.groupBy;
+    let chartType = props.chartType;
 
     let labels = [];
     let chartData = [];
@@ -41,25 +42,46 @@ function DonutChart(props) {
         labels: labels,
         datasets: [
             {
-                label: 'Sorted By',
-                backgroundColor: createColours(),
+                label: 'Chart',
+                backgroundColor: createColours({
+                    luminosity: 'light'
+                }),
                 data: chartData
             }
         ]
     }
 
+    const getChart = () => {
+        switch (chartType) {
+            case "bar":
+                return (
+                    <Bar
+                        data={state}
+                        type={'bar'}
+                    />
+                )
+
+            case "doughnut":
+                return (
+                    <Doughnut
+                        data={state}
+                        options={{
+                            radius: "225",
+                        }}
+                        type={'doughnut'}
+                    />
+                );
+        }
+    };
+
     return(
         <div>
-            <div className="chart" style={{ height:"500px", padding:"5px" }}>
-                <Doughnut
-                    data={state}
-                    options={{
-                        radius:150,
-                        height:200,
-                        maintainAspectRatio:false
-                    }}
-                    type={'doughnut'}
-                />
+            <div className="chart" style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+            }}>
+                {getChart()}
             </div>
         </div>
     );
