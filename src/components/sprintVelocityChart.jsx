@@ -219,7 +219,7 @@ function SprintVelocityChart() {
     );
 
     const titleComponent = () => (
-      <div style={{ margin:"5px", display:"flex", justifyContent:"space-between", width:"50%" }}>
+      <div style={{ margin:"5px", display:"flex", justifyContent:"space-between", width:"700px" }}>
           <h2>Sprint Velocity</h2>
           {uploadFileComponent()}
       </div>
