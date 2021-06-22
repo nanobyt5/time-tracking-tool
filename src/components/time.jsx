@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import DatePicker from "react-datepicker";
+import { DatePicker } from "antd";
 import {FormLabel, Grid} from "@material-ui/core";
 import Select from "react-select";
 import {subDays} from "date-fns";
@@ -16,9 +16,13 @@ import DataGrid, {
 import "react-datepicker/dist/react-datepicker.css";
 import 'devextreme/dist/css/dx.common.css';
 import 'devextreme/dist/css/dx.light.css';
+import 'antd/dist/antd.css';
 
 import DonutChart from "./donutChart";
 import * as XLSX from "xlsx";
+import moment from "moment";
+
+const { RangePicker } = DatePicker;
 
 const COLUMNS = [
   {
@@ -138,14 +142,6 @@ function Time() {
   }
   let data = getData();
 
-  const changeStartDate = (date) => {
-    setStartDate(date);
-  };
-
-  const changeEndDate = (date) => {
-    setEndDate(date);
-  };
-
   const changeTeam = (entries) => {
     let teams = entries.map(({ value }) => value);
     setTeam(teams);
@@ -159,6 +155,12 @@ function Time() {
   const changeActivities = (entries) => {
     let activities = entries.map(({ value }) => value);
     setActivity(activities);
+  };
+
+  const changeDate = (entries) => {
+    let dates = entries.map(entry => entry["_d"]);
+    setStartDate(dates[0]);
+    setEndDate(dates[1]);
   };
 
   const changeTags = (entries) => {
@@ -344,45 +346,13 @@ function Time() {
     </div>
   );
 
-  const datePickerFormComponent = (
-      className,
-      labelText,
-      selectedDate,
-      startDate,
-      endDate,
-      onChange
-  ) => (
-      <div className={className}>
-        <FormLabel>{labelText}</FormLabel>
-        <DatePicker
-            selected={selectedDate}
-            selectsStart
-            startDate={startDate}
-            endDate={endDate}
-            onChange={onChange}
-            dateFormat="dd/MM/yyyy"
-        />
-      </div>
-  );
-
   const datePickerRow = () => (
       <Grid container justify={"space-evenly"} >
-        {datePickerFormComponent(
-            "startDateForm",
-            "Start Date:",
-            startDate,
-            startDate,
-            endDate,
-            changeStartDate
-        )}
-        {datePickerFormComponent(
-            "endDateForm",
-            "End Date:",
-            endDate,
-            startDate,
-            endDate,
-            changeEndDate
-        )}
+        <RangePicker
+            size='large'
+            value={[moment(startDate), moment(endDate)]}
+            onChange={changeDate}
+        />
       </Grid>
   );
 
