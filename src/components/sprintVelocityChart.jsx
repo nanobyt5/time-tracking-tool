@@ -1,7 +1,7 @@
 import React, {useState} from "react";
-import {Bar} from "react-chartjs-2";
 import DataGrid, {Column, Scrolling} from "devextreme-react/data-grid";
 import * as XLSX from "xlsx";
+import {DualAxes} from "@ant-design/charts";
 
 const COLUMNS = [
     {
@@ -30,9 +30,8 @@ function SprintVelocityChart() {
     const [data, setData] = useState([]);
 
     let sprints = [];
-    let estimateHours = [];
-    let actualHours = [];
-    let sprintVelocity = [];
+    let barData = [];
+    let lineData = [];
     let tableData = [];
     let maxHours = 0;
     let maxVelocity = 0;
@@ -54,9 +53,23 @@ function SprintVelocityChart() {
             if (actual > maxHours) {
                 maxHours = actual;
             }
-            estimateHours.push(estimate);
-            actualHours.push(actual);
-            sprintVelocity.push(velocity);
+
+            barData.push(
+                {
+                    sprint: sprint,
+                    value: estimate,
+                    type: 'Estimate'
+                },
+                {
+                    sprint: sprint,
+                    value: actual,
+                    type: 'Actual Time Spent'
+                })
+
+            lineData.push({
+                sprint: sprint,
+                velocity: velocity
+            })
 
             tableData.push(
                 {
@@ -96,35 +109,6 @@ function SprintVelocityChart() {
     }
 
     getChartData();
-
-    const getDataSets = () => (
-        [
-            {
-                type: 'line',
-                label: 'Sprint Velocity',
-                data: sprintVelocity,
-                yAxisID: 'line',
-                backgroundColor: "rgb(255,99,26)",
-                borderColor: "rgb(255,99,26)"
-            },
-            {
-                type: 'bar',
-                label: 'Estimated Hours',
-                data: estimateHours,
-                yAxisID: 'bar',
-                backgroundColor: "rgb(26,228,255)",
-                borderColor: "rgb(26,228,255)"
-            },
-            {
-                type: 'bar',
-                label: 'Actual Hours',
-                data:  actualHours,
-                yAxisID: 'bar',
-                backgroundColor: "rgb(26,83,255)",
-                borderColor: "rgb(26,83,255)"
-            },
-        ]
-    )
 
     const processData = dataString => {
         const dataStringLines = dataString.split(/\r\n|\n/);
@@ -176,36 +160,21 @@ function SprintVelocityChart() {
         reader.readAsBinaryString(file);
     }
 
-    const state = {
-        labels: sprints,
-        datasets: getDataSets()
-    }
-
-    const options = {
-        scales: {
-            line: {
-                type: 'linear',
-                display: true,
-                position: 'right',
-                max: maxVelocity + 1,
-                ticks: {
-                    stepSize: 1
-                },
-                grid: {
-                    drawOnChartArea: false,
-                },
+    let config = {
+        data: [barData, lineData],
+        xField: 'sprint',
+        yField: ['value', 'velocity'],
+        geometryOptions: [
+            {
+                geometry: 'column',
+                isGroup: true,
+                seriesField: 'type',
             },
-            bar: {
-                type: 'linear',
-                display: true,
-                position: 'left',
-                max: maxHours + 1,
-                ticks: {
-                    stepSize: 1
-                }
+            {
+                geometry: 'line',
+                lineStyle: { lineWidth: 2 },
             },
-        },
-        maintainAspectRatio:false
+        ],
     };
 
     const uploadFileComponent = () => (
@@ -219,7 +188,7 @@ function SprintVelocityChart() {
     );
 
     const titleComponent = () => (
-      <div style={{ margin:"5px", display:"flex", justifyContent:"space-between", width:"50%" }}>
+      <div style={{ margin:"5px", display:"flex", justifyContent:"space-between", width:"700px" }}>
           <h2>Sprint Velocity</h2>
           {uploadFileComponent()}
       </div>
@@ -256,12 +225,10 @@ function SprintVelocityChart() {
         </div>
     );
 
-    const barComponent = () => (
+    const multiAxesComponent = () => (
         <div className="chart" style={{ width:"60%", height:"500px" }}>
-            <Bar
-                data={state}
-                options={options}
-                type={'bar'}
+            <DualAxes
+                {...config}
             />
         </div>
     );
@@ -271,7 +238,7 @@ function SprintVelocityChart() {
             {titleComponent()}
             <div style={{ display:"flex", justifyContent:"space-evenly", margin:"5px" }}>
                 {dataGridComponent()}
-                {barComponent()}
+                {multiAxesComponent()}
             </div>
         </div>
     )
