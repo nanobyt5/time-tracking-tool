@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import { DatePicker } from "antd";
 import {FormLabel, Grid} from "@material-ui/core";
-import Select from "react-select";
+import { Select } from "antd";
 import {subDays} from "date-fns";
 import DataGrid, {
   Column,
@@ -13,7 +13,6 @@ import DataGrid, {
   Summary
 } from "devextreme-react/data-grid";
 
-import "react-datepicker/dist/react-datepicker.css";
 import 'devextreme/dist/css/dx.common.css';
 import 'devextreme/dist/css/dx.light.css';
 import 'antd/dist/antd.css';
@@ -23,6 +22,7 @@ import * as XLSX from "xlsx";
 import moment from "moment";
 
 const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 const COLUMNS = [
   {
@@ -168,12 +168,12 @@ function Time() {
     setTags(tags);
   };
 
-  const changeSortMethod = ({ value }) => {
-    setGroupBy(value);
+  const changeGroupBy = (newGroupBy) => {
+    setGroupBy(newGroupBy);
   };
 
-  const changeChartType = ({ value }) => {
-    setChartType(value);
+  const changeChartType = (newChartType) => {
+    setChartType(newChartType);
   };
 
   const processData = dataString => {
@@ -253,12 +253,7 @@ function Time() {
       }
     });
 
-    return toGets.sort().map(entry => (
-        {
-          value: entry,
-          label: entry
-        }
-    ));
+    return toGets.sort();
   };
 
   const getAllTags = () => {
@@ -326,13 +321,17 @@ function Time() {
       options,
       onChange
   ) => (
-      <div className={className} style={{ width: 220 }}>
+      <div className={className} >
         <FormLabel>{labelText}</FormLabel>
         <Select
-            names={selectName}
-            options={options}
+            value={selectName}
             onChange={onChange}
-        />
+            size='large'
+        >
+          {options.map(option =>
+            <Option value={option["value"]}>{option["label"]}</Option>
+          )}
+        </Select>
       </div>
   );
 
@@ -347,7 +346,7 @@ function Time() {
   );
 
   const datePickerRow = () => (
-      <Grid container justify={"space-evenly"} >
+      <Grid container justify={"space-evenly"}>
         <RangePicker
             size='large'
             value={[moment(startDate), moment(endDate)]}
@@ -417,18 +416,18 @@ function Time() {
   );
 
   const groupByForm = () => (
-      <Grid container justify={"space-evenly"}>
+      <Grid container justify={"space-evenly"} style={{ margin: 5 }}>
         {selectSingleComponent(
             "sortForm",
             "Group By:",
-            "groupBy",
+            groupBy,
             GROUP_METHODS,
-            changeSortMethod
+            changeGroupBy
         )}
         {selectSingleComponent(
             "chartTypeForm",
             "Chart Type:",
-            "chartType",
+            chartType,
             CHART_TYPES,
             changeChartType
         )}
@@ -439,7 +438,7 @@ function Time() {
       <div>
         {datePickerRow()}
         {groupByForm()}
-        {selectComponentGrid()}
+        {/*{selectComponentGrid()}*/}
       </div>
   );
 
