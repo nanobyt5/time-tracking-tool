@@ -24,11 +24,6 @@ const { Option } = Select;
 
 const COLUMNS = [
   {
-    dataField: "id",
-    dataType: "number",
-    toGroup: false,
-  },
-  {
     dataField: "date",
     dataType: "date",
     toSort: false,
