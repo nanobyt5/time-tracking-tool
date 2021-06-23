@@ -142,19 +142,16 @@ function Time() {
   }
   let data = getData();
 
-  const changeTeam = (entries) => {
-    let teams = entries.map(({ value }) => value);
-    setTeam(teams);
+  const changeTeam = (newTeams) => {
+    setTeam(newTeams);
   };
 
-  const changeTeamMembers = (entries) => {
-    let users = entries.map((entry) => entry.value);
-    setTeamMember(users);
+  const changeTeamMembers = (newUsers) => {
+    setTeamMember(newUsers);
   };
 
-  const changeActivities = (entries) => {
-    let activities = entries.map(({ value }) => value);
-    setActivity(activities);
+  const changeActivities = (newActivities) => {
+    setActivity(newActivities);
   };
 
   const changeDate = (entries) => {
@@ -163,9 +160,8 @@ function Time() {
     setEndDate(dates[1]);
   };
 
-  const changeTags = (entries) => {
-    let tags = entries.map(({ value }) => value);
-    setTags(tags);
+  const changeTags = (newTags) => {
+    setTags(newTags);
   };
 
   const changeGroupBy = (newGroupBy) => {
@@ -275,11 +271,7 @@ function Time() {
       });
     });
 
-    return tags.sort()
-        .map(entry => ({
-          value: entry,
-          label: entry
-        }));
+    return tags.sort();
   };
 
   const allTeams = getAllFromDb("Team");
@@ -303,14 +295,21 @@ function Time() {
       options,
       onChange
   ) => (
-      <div className={className} style={{ width: 220 }}>
+      <div className={className} >
         <FormLabel>{labelText}</FormLabel>
         <Select
-            isMulti
-            names={selectName}
-            options={options}
+            mode='multiple'
+            allowClear
+            placeholder='No filter'
+            style={{ width: '200px', margin: '5px' }}
+            value={selectName}
             onChange={onChange}
-        />
+            tokenSeparators={[',']}
+        >
+          {options.map(option =>
+            <Option value={option}>{option}</Option>
+          )}
+        </Select>
       </div>
   );
 
@@ -321,7 +320,7 @@ function Time() {
       options,
       onChange
   ) => (
-      <div className={className} >
+      <div className={className} style={{ width:"250px" }} >
         <FormLabel>{labelText}</FormLabel>
         <Select
             value={selectName}
@@ -356,30 +355,40 @@ function Time() {
   );
 
   const selectComponentGrid = () => (
-      <Grid container justify={"space-evenly"}>
-        {selectMultiComponent(
-            "teamForm",
-            "Teams:",
-            "teams",
-            allTeams,
-            changeTeam
-        )}
-        {selectMultiComponent(
-            "userForm",
-            "User:",
-            "users",
-            allTeamMembers,
-            changeTeamMembers
-        )}
-        {selectMultiComponent(
-            "activityForm",
-            "Activity:",
-            "activities",
-            allActivities,
-            changeActivities
-        )}
-        {selectMultiComponent("tagForm", "Tags:", "tags", allTags, changeTags)}
-      </Grid>
+      <div>
+        <Grid container justify={"space-evenly"} >
+          {selectMultiComponent(
+              "teamForm",
+              "Teams:",
+              team,
+              allTeams,
+              changeTeam
+          )}
+          {selectMultiComponent(
+              "userForm",
+              "User:",
+              teamMember,
+              allTeamMembers,
+              changeTeamMembers
+          )}
+        </Grid>
+        <Grid container justify={"space-evenly"} >
+          {selectMultiComponent(
+              "activityForm",
+              "Activity:",
+              activity,
+              allActivities,
+              changeActivities
+          )}
+          {selectMultiComponent(
+              "tagForm",
+              "Tags:",
+              tags,
+              allTags,
+              changeTags
+          )}
+        </Grid>
+      </div>
   );
 
   const dataGridComponent = () => (
@@ -438,7 +447,7 @@ function Time() {
       <div>
         {datePickerRow()}
         {groupByForm()}
-        {/*{selectComponentGrid()}*/}
+        {selectComponentGrid()}
       </div>
   );
 
