@@ -1,10 +1,12 @@
 import React from "react";
 import SprintVelocityComponent from '../components/sprintVelocityChart'
 
-function SprintVelocity() {
+function SprintVelocity(props) {
+    let { data } = props.location.state;
+
     return (
         <div>
-            <SprintVelocityComponent />
+            <SprintVelocityComponent data={data} />
         </div>
     )
 }

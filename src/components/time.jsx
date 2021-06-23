@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import { DatePicker } from "antd";
 import {FormLabel, Grid} from "@material-ui/core";
 import { Select } from "antd";
-import {subDays} from "date-fns";
 import DataGrid, {
   Column,
   Export,
@@ -18,7 +17,6 @@ import 'devextreme/dist/css/dx.light.css';
 import 'antd/dist/antd.css';
 
 import TimeChart from "./timeChart";
-import * as XLSX from "xlsx";
 import moment from "moment";
 
 const { RangePicker } = DatePicker;
@@ -79,10 +77,10 @@ const INITIAL_GROUP_BY = "activity";
 
 const INITIAL_CHART_TYPE = "doughnut";
 
-function Time() {
-  const [db, setDb] = useState([]);
-  const [startDate, setStartDate] = useState(subDays(new Date(), 6));
-  const [endDate, setEndDate] = useState(new Date());
+function Time(props) {
+  const [db] = useState(props.data);
+  const [startDate, setStartDate] = useState(props.startDate);
+  const [endDate, setEndDate] = useState(props.endDate);
   const [team, setTeam] = useState([]);
   const [teamMember, setTeamMember] = useState([]);
   const [activity, setActivity] = useState([]);
@@ -155,6 +153,9 @@ function Time() {
   };
 
   const changeDate = (entries) => {
+    if (entries === null) {
+      return;
+    }
     let dates = entries.map(entry => entry["_d"]);
     setStartDate(dates[0]);
     setEndDate(dates[1]);
@@ -171,70 +172,6 @@ function Time() {
   const changeChartType = (newChartType) => {
     setChartType(newChartType);
   };
-
-  const processData = dataString => {
-    const dataStringLines = dataString.split(/\r\n|\n/);
-    const headers = dataStringLines[0].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
-
-    const list = [];
-    let tempStartDate = startDate;
-    let tempEndDate = endDate;
-    for (let i = 1; i < dataStringLines.length; i++) {
-      const row = dataStringLines[i].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
-      if (headers && row.length === headers.length) {
-        const obj = {};
-        for (let j = 0; j < headers.length; j++) {
-          let d = row[j];
-          if (d.length > 0) {
-            if (d[0] === '"')
-              d = d.substring(1, d.length - 1);
-            if (d[d.length - 1] === '"')
-              d = d.substring(d.length - 2, 1);
-          }
-          if (headers[j]) {
-            obj[headers[j]] = d;
-          }
-        }
-
-        // remove the blank rows
-        if (Object.values(obj).filter(x => x).length > 0) {
-          let date = new Date(obj["Date"]);
-
-          if (date < tempStartDate) {
-            tempStartDate = date;
-          }
-
-          if (date > tempEndDate) {
-            tempEndDate = date;
-          }
-
-          list.push(obj);
-        }
-      }
-    }
-
-    setStartDate(tempStartDate);
-    setEndDate(tempEndDate);
-    setDb(list);
-  }
-
-  // handle file upload
-  const handleFileUpload = e => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      /* Parse data */
-      const bStr = evt.target.result;
-      const wb = XLSX.read(bStr, { type: 'binary' });
-      /* Get first worksheet */
-      const wsName = wb.SheetNames[0];
-      const ws = wb.Sheets[wsName];
-      /* Convert array of arrays */
-      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
-      processData(data);
-    };
-    reader.readAsBinaryString(file);
-  }
 
   const getAllFromDb = (toGet) => {
     const lookUp = {};
@@ -334,16 +271,6 @@ function Time() {
       </div>
   );
 
-  const uploadFileComponent = () => (
-    <div style={{ display:"flex", justifyContent:"center", margin:"5px" }}>
-      <input
-          type="file"
-          accept=".csv,.xlsx,.xls"
-          onChange={handleFileUpload}
-      />
-    </div>
-  );
-
   const datePickerRow = () => (
       <Grid container justify={"space-evenly"} style={{ margin: '5px' }}>
         <RangePicker
@@ -351,7 +278,6 @@ function Time() {
             value={[moment(startDate), moment(endDate)]}
             onChange={changeDate}
         />
-        {uploadFileComponent()}
       </Grid>
   );
 
