@@ -1,114 +1,222 @@
-import React, {useState} from "react";
-import DataGrid, {Column, Scrolling} from "devextreme-react/data-grid";
-import * as XLSX from "xlsx";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import {DualAxes} from "@ant-design/charts";
+import {Form, Input, Table} from "antd";
+
+const EditableContext = React.createContext(null);
+
+const EditableRow = ({ index, ...props }) => {
+    const [form] = Form.useForm();
+
+    return (
+        <Form form={form} component={false}>
+            <EditableContext.Provider value={form}>
+                <tr {...props} />
+            </EditableContext.Provider>
+        </Form>
+    )
+};
+
+const EditableCell = ({
+    title,
+    editable,
+    children,
+    dataIndex,
+    record,
+    handleSave,
+    ...restProps
+}) => {
+    const [editing, setEditing] = useState(false);
+    const inputRef = useRef(null);
+    const form = useContext(EditableContext);
+
+    useEffect(() => {
+        if (editing) {
+            inputRef.current.focus();
+        }
+    }, [editing]);
+
+    const toggleEdit = () => {
+        setEditing(!editing);
+        form.setFieldsValue({
+            [dataIndex]: record[dataIndex]
+        })
+    }
+
+    const save = async () => {
+        try {
+            const values = await form.validateFields();
+            toggleEdit();
+            handleSave({ ...record, ...values });
+        } catch (errInfo) {
+            console.log('Save failed:', errInfo);
+        }
+    }
+
+    let childNode = children;
+
+    if (editable) {
+        childNode = editing ? (
+            <Form.Item
+                style={{
+                    margin: 0,
+                }}
+                name={dataIndex}
+                rules={[
+                    {
+                        required: true,
+                        message: `${title} is required.`,
+                    },
+                ]}
+            >
+                <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+            </Form.Item>
+        ) : (
+            <div
+                className="editable-cell-value-wrap"
+                style={{
+                    paddingRight: 24,
+                }}
+                onClick={toggleEdit}
+            >
+                {children}
+            </div>
+        );
+    }
+
+    return <td {...restProps}>{childNode}</td>
+}
 
 const COLUMNS = [
     {
-        dataField: "sprint",
-        dataType: "string",
-        toGroup: true
+        title: 'Sprint',
+        dataIndex: 'sprint',
     },
     {
-        dataField: "capacity",
-        dataType: "number",
-        toGroup: false
+        title: 'Capacity',
+        dataIndex: 'capacity',
+        editable: true
     },
     {
-        dataField: "storyPoints",
-        dataType: "number",
-        toGroup: false
+        title: 'Completed',
+        dataIndex: 'completed',
+        editable: true
     },
     {
-        dataField: "sprintVelocity",
-        dataType: "number",
-        toGroup: false
+        title: 'Velocity',
+        dataIndex: 'velocity',
     }
 ];
 
 function SprintVelocityChart(props) {
-    const [data, setData] = useState(props.data);
+    const [barData, setBarData] = useState(props.barData);
+    const [lineData, setLineData] = useState(props.lineData);
+    const [tableData, setTableData] = useState(props.tableData);
+    // const [data, setData] = useState(props.data);
 
-    let sprints = [];
-    let barData = [];
-    let lineData = [];
-    let tableData = [];
-    let maxHours = 0;
-    let maxVelocity = 0;
-    const populateData = (lookUp) => {
-        sprints.forEach(sprint => {
-            let currSprint = lookUp[sprint];
-            let estimate = currSprint["estimate"];
-            let actual = currSprint["actual"];
-            let velocity = estimate / (actual / 4);
+    // let barData = [];
+    // let lineData = [];
+    // let tableData = [];
+    // const populateData = (lookUp, sprints) => {
+    //     let i = 0;
+    //     sprints.forEach(sprint => {
+    //         let currSprint = lookUp[sprint];
+    //         let hours = currSprint["hours"];
+    //         let storyPoints = currSprint["storyPoints"];
+    //         let velocity = storyPoints / (hours / 8);
+    //
+    //         barData.push(
+    //             {
+    //                 sprint: sprint,
+    //                 value: hours,
+    //                 type: 'Time Spent'
+    //             },
+    //             {
+    //                 sprint: sprint,
+    //                 value: storyPoints,
+    //                 type: 'Total Story Points'
+    //             })
+    //
+    //         lineData.push({
+    //             sprint: sprint,
+    //             velocity: velocity
+    //         })
+    //
+    //         tableData.push(
+    //             {
+    //                 key: i++,
+    //                 sprint: sprint,
+    //                 capacity: hours,
+    //                 completed: storyPoints,
+    //                 velocity: velocity
+    //             }
+    //         )
+    //     })
+    // }
+    //
+    // const getChartData = () => {
+    //     let lookUp = {};
+    //     let sprints = [];
+    //
+    //     data.filter(entry => entry["Team"] === "Tech Team" && entry["Story Points Completed"] !== "")
+    //         .forEach(entry => {
+    //             let sprint = entry["Sprint Cycle"];
+    //             let hours = parseFloat(entry["Hours"]);
+    //             let storyPoints = parseFloat(entry["Story Points Completed"]);
+    //
+    //             if (!(sprint in lookUp)) {
+    //                 lookUp[sprint] = {
+    //                     hours: hours,
+    //                     storyPoints: storyPoints
+    //                 };
+    //                 sprints.push(sprint);
+    //             } else {
+    //                 let currEntry = lookUp[sprint];
+    //                 currEntry["hours"] += hours;
+    //                 currEntry["storyPoints"] += storyPoints;
+    //                 lookUp[sprint] = currEntry;
+    //             }
+    //         })
+    //
+    //     sprints.sort();
+    //
+    //     populateData(lookUp, sprints);
+    // }
 
-            if (velocity > maxVelocity) {
-                maxVelocity = velocity;
-            }
-
-            if (estimate > maxHours) {
-                maxHours = estimate;
-            }
-
-            if (actual > maxHours) {
-                maxHours = actual;
-            }
-
-            barData.push(
-                {
-                    sprint: sprint,
-                    value: estimate,
-                    type: 'Estimate'
-                },
-                {
-                    sprint: sprint,
-                    value: actual,
-                    type: 'Actual Time Spent'
-                })
-
-            lineData.push({
-                sprint: sprint,
-                velocity: velocity
-            })
-
-            tableData.push(
-                {
-                    sprint: sprint,
-                    capacity: estimate,
-                    storyPoints: actual,
-                    sprintVelocity: velocity
-                }
-            )
-        })
+    const handleSave = (row) => {
+        console.log("save", row)
+        const newData = [...tableData];
+        const index = newData.findIndex(item => row.key === item.key);
+        const item = newData[index];
+        newData.splice(index, 1, { ...item, ...row });
+        console.log("new data", newData);
+        setTableData(newData);
     }
 
-    const getChartData = () => {
-        let lookUp = {};
-        data.forEach(entry => {
-            let sprint = entry["Sprint"];
-            let estimate = entry["Estimation"];
-            let actual = entry["Hours"];
+    // getChartData();
 
-            if (!(sprint in lookUp)) {
-                lookUp[sprint] = {
-                    estimate: parseInt(estimate),
-                    actual: parseInt(actual)
-                };
-                sprints.push(sprint);
-            } else {
-                let currEntry = lookUp[sprint];
-                currEntry["estimate"] += parseInt(estimate);
-                currEntry["actual"] += parseInt(actual);
-                lookUp[sprint] = currEntry;
-            }
-        })
+    const components = {
+        body: {
+            row: EditableRow,
+            cell: EditableCell,
+        },
+    };
 
-        sprints.sort();
+    const columns = COLUMNS.map(col => {
+        if (!col.editable) {
+            return col;
+        }
 
-        populateData(lookUp);
-    }
-
-    getChartData();
+        return {
+            ...col,
+            onCell: (record) => ({
+                record,
+                editable: col.editable,
+                dataIndex: col.dataIndex,
+                title: col.title,
+                handleSave: handleSave,
+            }),
+        };
+    })
 
     let config = {
         data: [barData, lineData],
@@ -123,6 +231,7 @@ function SprintVelocityChart(props) {
             {
                 geometry: 'line',
                 lineStyle: { lineWidth: 2 },
+                isStack: true
             },
         ],
     };
@@ -136,31 +245,13 @@ function SprintVelocityChart(props) {
 
     const dataGridComponent = () => (
         <div style={{ width:"39%", padding:"11px" }} >
-            <DataGrid
-                height={"30vh"}
+            <Table
+                components={components}
+                rowClassName={() => 'editable-row'}
+                bordered
                 dataSource={tableData}
-                showBorders={true}
-                wordWrapEnabled={true}
-            >
-                <Scrolling mode={"infinite"} />
-
-                {COLUMNS.map(({dataField, dataType, toGroup}) => (
-                    toGroup ? (
-                        <Column
-                            dataField={dataField}
-                            dataType={dataType}
-                            alignment={"center"}
-                            groupIndex={0}
-                        />
-                    ) : (
-                        <Column
-                            dataField={dataField}
-                            dataType={dataType}
-                            alignment={"center"}
-                        />
-                    )
-                ))}
-            </DataGrid>
+                columns={columns}
+            />
         </div>
     );
 
