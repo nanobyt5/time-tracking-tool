@@ -17,7 +17,7 @@ import 'devextreme/dist/css/dx.common.css';
 import 'devextreme/dist/css/dx.light.css';
 import 'antd/dist/antd.css';
 
-import DonutChart from "./donutChart";
+import TimeChart from "./timeChart";
 import * as XLSX from "xlsx";
 import moment from "moment";
 
@@ -461,7 +461,7 @@ function Time() {
           </div>
         </div>
         <div className="donutChart" style={{ width: "49%" }}>
-          <DonutChart
+          <TimeChart
               data={data}
               groupBy={groupBy}
               chartType={chartType}

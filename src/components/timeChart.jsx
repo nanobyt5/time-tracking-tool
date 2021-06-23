@@ -1,7 +1,7 @@
 import React from "react";
 import {Column, Pie} from "@ant-design/charts";
 
-function DonutChart(props) {
+function TimeChart(props) {
     let db = props.data;
     let groupBy = props.groupBy;
     let chartType = props.chartType;
@@ -139,4 +139,4 @@ function DonutChart(props) {
     );
 }
 
-export default DonutChart;
+export default TimeChart;
