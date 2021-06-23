@@ -345,12 +345,13 @@ function Time() {
   );
 
   const datePickerRow = () => (
-      <Grid container justify={"space-evenly"}>
+      <Grid container justify={"space-evenly"} style={{ margin: '5px' }}>
         <RangePicker
             size='large'
             value={[moment(startDate), moment(endDate)]}
             onChange={changeDate}
         />
+        {uploadFileComponent()}
       </Grid>
   );
 
@@ -454,7 +455,6 @@ function Time() {
   return (
       <Grid container justify={"space-evenly"} >
         <div style={{ width:"49%" }}>
-          {uploadFileComponent()}
           {filterOptionsComponent()}
           <div style={{ margin: "5px" }}>
             {dataGridComponent()}
