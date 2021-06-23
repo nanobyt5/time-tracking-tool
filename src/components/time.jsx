@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
-import DatePicker from "react-datepicker";
+import { DatePicker } from "antd";
 import {FormLabel, Grid} from "@material-ui/core";
-import Select from "react-select";
+import { Select } from "antd";
 import {subDays} from "date-fns";
 import DataGrid, {
   Column,
@@ -13,12 +13,16 @@ import DataGrid, {
   Summary
 } from "devextreme-react/data-grid";
 
-import "react-datepicker/dist/react-datepicker.css";
 import 'devextreme/dist/css/dx.common.css';
 import 'devextreme/dist/css/dx.light.css';
+import 'antd/dist/antd.css';
 
-import DonutChart from "./donutChart";
+import TimeChart from "./timeChart";
 import * as XLSX from "xlsx";
+import moment from "moment";
+
+const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 const COLUMNS = [
   {
@@ -138,40 +142,34 @@ function Time() {
   }
   let data = getData();
 
-  const changeStartDate = (date) => {
-    setStartDate(date);
+  const changeTeam = (newTeams) => {
+    setTeam(newTeams);
   };
 
-  const changeEndDate = (date) => {
-    setEndDate(date);
+  const changeTeamMembers = (newUsers) => {
+    setTeamMember(newUsers);
   };
 
-  const changeTeam = (entries) => {
-    let teams = entries.map(({ value }) => value);
-    setTeam(teams);
+  const changeActivities = (newActivities) => {
+    setActivity(newActivities);
   };
 
-  const changeTeamMembers = (entries) => {
-    let users = entries.map((entry) => entry.value);
-    setTeamMember(users);
+  const changeDate = (entries) => {
+    let dates = entries.map(entry => entry["_d"]);
+    setStartDate(dates[0]);
+    setEndDate(dates[1]);
   };
 
-  const changeActivities = (entries) => {
-    let activities = entries.map(({ value }) => value);
-    setActivity(activities);
+  const changeTags = (newTags) => {
+    setTags(newTags);
   };
 
-  const changeTags = (entries) => {
-    let tags = entries.map(({ value }) => value);
-    setTags(tags);
+  const changeGroupBy = (newGroupBy) => {
+    setGroupBy(newGroupBy);
   };
 
-  const changeSortMethod = ({ value }) => {
-    setGroupBy(value);
-  };
-
-  const changeChartType = ({ value }) => {
-    setChartType(value);
+  const changeChartType = (newChartType) => {
+    setChartType(newChartType);
   };
 
   const processData = dataString => {
@@ -251,12 +249,7 @@ function Time() {
       }
     });
 
-    return toGets.sort().map(entry => (
-        {
-          value: entry,
-          label: entry
-        }
-    ));
+    return toGets.sort();
   };
 
   const getAllTags = () => {
@@ -278,11 +271,7 @@ function Time() {
       });
     });
 
-    return tags.sort()
-        .map(entry => ({
-          value: entry,
-          label: entry
-        }));
+    return tags.sort();
   };
 
   const allTeams = getAllFromDb("Team");
@@ -306,14 +295,21 @@ function Time() {
       options,
       onChange
   ) => (
-      <div className={className} style={{ width: 220 }}>
+      <div className={className} >
         <FormLabel>{labelText}</FormLabel>
         <Select
-            isMulti
-            names={selectName}
-            options={options}
+            mode='multiple'
+            allowClear
+            placeholder='No filter'
+            style={{ width: '200px', margin: '5px' }}
+            value={selectName}
             onChange={onChange}
-        />
+            tokenSeparators={[',']}
+        >
+          {options.map(option =>
+            <Option value={option}>{option}</Option>
+          )}
+        </Select>
       </div>
   );
 
@@ -324,13 +320,17 @@ function Time() {
       options,
       onChange
   ) => (
-      <div className={className} style={{ width: 220 }}>
+      <div className={className} style={{ width:"250px" }} >
         <FormLabel>{labelText}</FormLabel>
         <Select
-            names={selectName}
-            options={options}
+            value={selectName}
             onChange={onChange}
-        />
+            size='large'
+        >
+          {options.map(option =>
+            <Option value={option["value"]}>{option["label"]}</Option>
+          )}
+        </Select>
       </div>
   );
 
@@ -344,73 +344,52 @@ function Time() {
     </div>
   );
 
-  const datePickerFormComponent = (
-      className,
-      labelText,
-      selectedDate,
-      startDate,
-      endDate,
-      onChange
-  ) => (
-      <div className={className}>
-        <FormLabel>{labelText}</FormLabel>
-        <DatePicker
-            selected={selectedDate}
-            selectsStart
-            startDate={startDate}
-            endDate={endDate}
-            onChange={onChange}
-            dateFormat="dd/MM/yyyy"
-        />
-      </div>
-  );
-
   const datePickerRow = () => (
-      <Grid container justify={"space-evenly"} >
-        {datePickerFormComponent(
-            "startDateForm",
-            "Start Date:",
-            startDate,
-            startDate,
-            endDate,
-            changeStartDate
-        )}
-        {datePickerFormComponent(
-            "endDateForm",
-            "End Date:",
-            endDate,
-            startDate,
-            endDate,
-            changeEndDate
-        )}
+      <Grid container justify={"space-evenly"} style={{ margin: '5px' }}>
+        <RangePicker
+            size='large'
+            value={[moment(startDate), moment(endDate)]}
+            onChange={changeDate}
+        />
+        {uploadFileComponent()}
       </Grid>
   );
 
   const selectComponentGrid = () => (
-      <Grid container justify={"space-evenly"}>
-        {selectMultiComponent(
-            "teamForm",
-            "Teams:",
-            "teams",
-            allTeams,
-            changeTeam
-        )}
-        {selectMultiComponent(
-            "userForm",
-            "User:",
-            "users",
-            allTeamMembers,
-            changeTeamMembers
-        )}
-        {selectMultiComponent(
-            "activityForm",
-            "Activity:",
-            "activities",
-            allActivities,
-            changeActivities
-        )}
-        {selectMultiComponent("tagForm", "Tags:", "tags", allTags, changeTags)}
-      </Grid>
+      <div>
+        <Grid container justify={"space-evenly"} >
+          {selectMultiComponent(
+              "teamForm",
+              "Teams:",
+              team,
+              allTeams,
+              changeTeam
+          )}
+          {selectMultiComponent(
+              "userForm",
+              "User:",
+              teamMember,
+              allTeamMembers,
+              changeTeamMembers
+          )}
+        </Grid>
+        <Grid container justify={"space-evenly"} >
+          {selectMultiComponent(
+              "activityForm",
+              "Activity:",
+              activity,
+              allActivities,
+              changeActivities
+          )}
+          {selectMultiComponent(
+              "tagForm",
+              "Tags:",
+              tags,
+              allTags,
+              changeTags
+          )}
+        </Grid>
+      </div>
   );
 
   const dataGridComponent = () => (
@@ -447,18 +426,18 @@ function Time() {
   );
 
   const groupByForm = () => (
-      <Grid container justify={"space-evenly"}>
+      <Grid container justify={"space-evenly"} style={{ margin: 5 }}>
         {selectSingleComponent(
             "sortForm",
             "Group By:",
-            "groupBy",
+            groupBy,
             GROUP_METHODS,
-            changeSortMethod
+            changeGroupBy
         )}
         {selectSingleComponent(
             "chartTypeForm",
             "Chart Type:",
-            "chartType",
+            chartType,
             CHART_TYPES,
             changeChartType
         )}
@@ -476,14 +455,13 @@ function Time() {
   return (
       <Grid container justify={"space-evenly"} >
         <div style={{ width:"49%" }}>
-          {uploadFileComponent()}
           {filterOptionsComponent()}
           <div style={{ margin: "5px" }}>
             {dataGridComponent()}
           </div>
         </div>
         <div className="donutChart" style={{ width: "49%" }}>
-          <DonutChart
+          <TimeChart
               data={data}
               groupBy={groupBy}
               chartType={chartType}
