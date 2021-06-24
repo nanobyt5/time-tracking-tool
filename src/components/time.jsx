@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DatePicker } from "antd";
 import { FormLabel, Grid } from "@material-ui/core";
-import { Select } from "antd";
+import { Select, Radio } from "antd";
 import DataGrid, {
   Column,
   Export,
@@ -231,8 +231,8 @@ function Time() {
     setGroupBy(newGroupBy);
   };
 
-  const changeChartType = (newChartType) => {
-    setChartType(newChartType);
+  const changeChartType = (e) => {
+    setChartType(e.target.value);
   };
 
   const getAllFromDb = (toGet) => {
@@ -329,6 +329,23 @@ function Time() {
     </div>
   );
 
+  const radioComponent = (
+      className,
+      labelText,
+      selectName,
+      radios,
+      onChange
+  ) => (
+      <div className={className} style={{ width: "250px" }}>
+        <FormLabel>{labelText}</FormLabel>
+        <Radio.Group value={selectName} onChange={onChange}>
+          {radios.map((radio) => (
+              <Radio value={radio["value"]}>{radio["label"]}</Radio>
+          ))}
+        </Radio.Group>
+      </div>
+  )
+
   const UploadFileComponent = () => (
     <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileUpload} />
   );
@@ -420,7 +437,7 @@ function Time() {
         GROUP_METHODS,
         changeGroupBy
       )}
-      {selectSingleComponent(
+      {radioComponent(
         "chartTypeForm",
         "Chart Type:",
         chartType,
