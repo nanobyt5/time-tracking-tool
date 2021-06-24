@@ -17,17 +17,20 @@ function SprintVelocity(props) {
 
             barData.push(
                 {
+                    key: `${i}.1`,
                     sprint: sprint,
                     value: hours,
                     type: 'Time Spent'
                 },
                 {
+                    key: `${i}.2`,
                     sprint: sprint,
                     value: storyPoints,
                     type: 'Total Story Points'
                 })
 
             lineData.push({
+                key: i,
                 sprint: sprint,
                 velocity: velocity
             })

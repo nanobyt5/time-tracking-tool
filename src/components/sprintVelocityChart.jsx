@@ -111,88 +111,79 @@ function SprintVelocityChart(props) {
     const [barData, setBarData] = useState(props.barData);
     const [lineData, setLineData] = useState(props.lineData);
     const [tableData, setTableData] = useState(props.tableData);
-    // const [data, setData] = useState(props.data);
 
-    // let barData = [];
-    // let lineData = [];
-    // let tableData = [];
-    // const populateData = (lookUp, sprints) => {
-    //     let i = 0;
-    //     sprints.forEach(sprint => {
-    //         let currSprint = lookUp[sprint];
-    //         let hours = currSprint["hours"];
-    //         let storyPoints = currSprint["storyPoints"];
-    //         let velocity = storyPoints / (hours / 8);
-    //
-    //         barData.push(
-    //             {
-    //                 sprint: sprint,
-    //                 value: hours,
-    //                 type: 'Time Spent'
-    //             },
-    //             {
-    //                 sprint: sprint,
-    //                 value: storyPoints,
-    //                 type: 'Total Story Points'
-    //             })
-    //
-    //         lineData.push({
-    //             sprint: sprint,
-    //             velocity: velocity
-    //         })
-    //
-    //         tableData.push(
-    //             {
-    //                 key: i++,
-    //                 sprint: sprint,
-    //                 capacity: hours,
-    //                 completed: storyPoints,
-    //                 velocity: velocity
-    //             }
-    //         )
-    //     })
-    // }
-    //
-    // const getChartData = () => {
-    //     let lookUp = {};
-    //     let sprints = [];
-    //
-    //     data.filter(entry => entry["Team"] === "Tech Team" && entry["Story Points Completed"] !== "")
-    //         .forEach(entry => {
-    //             let sprint = entry["Sprint Cycle"];
-    //             let hours = parseFloat(entry["Hours"]);
-    //             let storyPoints = parseFloat(entry["Story Points Completed"]);
-    //
-    //             if (!(sprint in lookUp)) {
-    //                 lookUp[sprint] = {
-    //                     hours: hours,
-    //                     storyPoints: storyPoints
-    //                 };
-    //                 sprints.push(sprint);
-    //             } else {
-    //                 let currEntry = lookUp[sprint];
-    //                 currEntry["hours"] += hours;
-    //                 currEntry["storyPoints"] += storyPoints;
-    //                 lookUp[sprint] = currEntry;
-    //             }
-    //         })
-    //
-    //     sprints.sort();
-    //
-    //     populateData(lookUp, sprints);
-    // }
+    const saveNewBarData = (key, sprint, capacity, completed) => {
+        const newBarData = [...barData];
+        const timeIndex = newBarData.findIndex(item => key + '.1' === item.key);
 
-    const handleSave = (row) => {
-        console.log("save", row)
-        const newData = [...tableData];
-        const index = newData.findIndex(item => row.key === item.key);
-        const item = newData[index];
-        newData.splice(index, 1, { ...item, ...row });
-        console.log("new data", newData);
-        setTableData(newData);
+        const timeItem = newBarData[timeIndex];
+        const newTimeItem = {
+            key: key + '.1',
+            sprint: sprint,
+            value: capacity,
+            type: 'Time Spent'
+        };
+
+        newBarData.splice(timeIndex, 1, { ...timeItem, ...newTimeItem });
+
+        const storyIndex = newBarData.findIndex(item => key + '.2' === item.key);
+
+        const storyItem = newBarData[storyIndex];
+        const newStoryItem = {
+            key: key + '.2',
+            sprint: sprint,
+            value: completed,
+            type: 'Total Story Points'
+        };
+
+        newBarData.splice(storyIndex, 1, { ...storyItem, ...newStoryItem });
+
+        setBarData(newBarData);
     }
 
-    // getChartData();
+    const saveNewLineData = (key, sprint, velocity) => {
+        const newLineData = [...lineData];
+        const index = newLineData.findIndex(item => key === item.key);
+
+        const item = newLineData[index];
+        const newItem = {
+            key: key,
+            sprint: sprint,
+            velocity: velocity
+        };
+
+        newLineData.splice(index, 1, { ...item, ...newItem });
+
+        setLineData(newLineData);
+    }
+
+    const saveNewTableData = (key, sprint, capacity, completed, velocity) => {
+        const newTableData = [...tableData];
+        const index = newTableData.findIndex(item => key === item.key);
+
+        const item = newTableData[index];
+        const newItem = {
+            key: key,
+            sprint: sprint,
+            capacity: capacity,
+            completed: completed,
+            velocity: velocity
+        };
+
+        newTableData.splice(index, 1, {...item, ...newItem});
+
+        setTableData(newTableData);
+    }
+
+    const handleSave = ({ key, sprint, capacity, completed }) => {
+        let capacityParse = parseFloat(capacity);
+        let completedParse = parseFloat(completed);
+        let velocity = completedParse / (capacityParse / 8);
+
+        saveNewTableData(key, sprint, capacityParse, completedParse, velocity);
+        saveNewBarData(key, sprint, capacityParse, completedParse);
+        saveNewLineData(key, sprint, velocity);
+    }
 
     const components = {
         body: {
@@ -243,7 +234,7 @@ function SprintVelocityChart(props) {
     );
 
 
-    const dataGridComponent = () => (
+    const tableComponent = () => (
         <div style={{ width:"39%", padding:"11px" }} >
             <Table
                 components={components}
@@ -267,7 +258,7 @@ function SprintVelocityChart(props) {
         <div>
             {titleComponent()}
             <div style={{ display:"flex", justifyContent:"space-evenly", margin:"5px" }}>
-                {dataGridComponent()}
+                {tableComponent()}
                 {multiAxesComponent()}
             </div>
         </div>
