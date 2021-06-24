@@ -6,8 +6,6 @@ function NavBar() {
     const navStyle = {
         color: 'white',
         textDecoration: 'none',
-        margin: '5px',
-        padding: '1px',
     };
 
     return (
