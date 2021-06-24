@@ -134,7 +134,7 @@ function TimeChart(props) {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
-                height: "80vh",
+                height: "60vh",
                 margin: "5px"
             }}>
                 {getChart()}

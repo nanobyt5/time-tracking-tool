@@ -294,8 +294,8 @@ function Time() {
     options,
     onChange
   ) => (
-    <div className={className}>
-      <FormLabel>{labelText}</FormLabel>
+    <div className={className} style={{ width: 200 }}>
+      <FormLabel style={{ margin: 5, fontWeight: 'bold' }}>{labelText}</FormLabel>
       <Select
         mode="multiple"
         allowClear
@@ -320,7 +320,7 @@ function Time() {
     onChange
   ) => (
     <div className={className} style={{ width: "250px" }}>
-      <FormLabel>{labelText}</FormLabel>
+      <FormLabel style={{ margin: 5 }}>{labelText}</FormLabel>
       <Select value={selectName} onChange={onChange} size="large">
         {options.map((option) => (
           <Option value={option["value"]}>{option["label"]}</Option>
@@ -331,13 +331,11 @@ function Time() {
 
   const radioComponent = (
       className,
-      labelText,
       selectName,
       radios,
       onChange
   ) => (
-      <div className={className} style={{ width: "250px" }}>
-        <FormLabel>{labelText}</FormLabel>
+      <div className={className} style={{ width: "250px", display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <Radio.Group value={selectName} onChange={onChange}>
           {radios.map((radio) => (
               <Radio value={radio["value"]}>{radio["label"]}</Radio>
@@ -346,43 +344,24 @@ function Time() {
       </div>
   )
 
-  const UploadFileComponent = () => (
-    <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileUpload} />
+  const uploadFileComponent = () => (
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <input
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            onChange={handleFileUpload}
+        />
+      </div>
   );
 
   const datePickerRow = () => (
-    <Grid container justify={"space-evenly"} style={{ margin: "5px" }}>
-      {UploadFileComponent()}
+    <div>
+      <FormLabel style={{ margin: 5 }}>Date:</FormLabel>
       <RangePicker
         size="large"
         value={[moment(startDate), moment(endDate)]}
         onChange={changeDate}
       />
-    </Grid>
-  );
-
-  const selectComponentGrid = () => (
-    <div>
-      <Grid container justify={"space-evenly"}>
-        {selectMultiComponent("teamForm", "Teams:", team, allTeams, changeTeam)}
-        {selectMultiComponent(
-          "userForm",
-          "User:",
-          teamMember,
-          allTeamMembers,
-          changeTeamMembers
-        )}
-      </Grid>
-      <Grid container justify={"space-evenly"}>
-        {selectMultiComponent(
-          "activityForm",
-          "Activity:",
-          activity,
-          allActivities,
-          changeActivities
-        )}
-        {selectMultiComponent("tagForm", "Tags:", tags, allTags, changeTags)}
-      </Grid>
     </div>
   );
 
@@ -428,49 +407,84 @@ function Time() {
     </DataGrid>
   );
 
-  const groupByForm = () => (
-    <Grid container justify={"space-evenly"} style={{ margin: 5 }}>
-      {selectSingleComponent(
-        "sortForm",
-        "Group By:",
-        groupBy,
-        GROUP_METHODS,
-        changeGroupBy
-      )}
-      {radioComponent(
-        "chartTypeForm",
-        "Chart Type:",
-        chartType,
-        CHART_TYPES,
-        changeChartType
-      )}
-    </Grid>
-  );
+  const firstRowComponent = () => (
+      <Grid container justify={'space-evenly'} style={{ margin: 5, padding: 5 }}>
+        {uploadFileComponent()}
+        {datePickerRow()}
+        {selectSingleComponent(
+            "sortForm",
+            "Group By:",
+            groupBy,
+            GROUP_METHODS,
+            changeGroupBy
+        )}
+      </Grid>
+  )
 
   const filterOptionsComponent = () => (
-    <div>
-      {datePickerRow()}
-      {groupByForm()}
-      {selectComponentGrid()}
-    </div>
+      <Grid container justify={"space-evenly"} style={{ margin: 5 }}>
+        {selectMultiComponent(
+            "teamForm",
+            "Team:",
+            team,
+            allTeams,
+            changeTeam
+        )}
+        {selectMultiComponent(
+            "userForm",
+            "Team Member:",
+            teamMember,
+            allTeamMembers,
+            changeTeamMembers
+        )}
+        {selectMultiComponent(
+            "activityForm",
+            "Activity:",
+            activity,
+            allActivities,
+            changeActivities
+        )}
+        {selectMultiComponent(
+            "tagForm",
+            "Tags:",
+            tags,
+            allTags,
+            changeTags
+        )}
+        {radioComponent(
+            "chartTypeForm",
+            chartType,
+            CHART_TYPES,
+            changeChartType
+        )}
+      </Grid>
   );
 
-  return (
-    <Grid container justify={"space-evenly"}>
-      <div style={{ width: "49%" }}>
+  const secondRowComponent = () => (
+      <Grid container justify={'space-evenly'} style={{ margin: 5 }}>
         {filterOptionsComponent()}
-        <div style={{ margin: "5px" }}>{dataGridComponent()}</div>
+      </Grid>
+  )
+
+  return (
+      <div>
+        {firstRowComponent()}
+        {secondRowComponent()}
+        <Grid container justify={"space-evenly"}>
+          <div style={{ width: '49%', margin: 5 }}>
+            {dataGridComponent()}
+          </div>
+          <div className="donutChart" style={{ width: "49%" }}>
+            <TimeChart
+              data={data}
+              groupBy={groupBy}
+              chartType={chartType}
+              startDate={startDate}
+              endDate={endDate}
+            />
+          </div>
+        </Grid>
       </div>
-      <div className="donutChart" style={{ width: "49%" }}>
-        <TimeChart
-          data={data}
-          groupBy={groupBy}
-          chartType={chartType}
-          startDate={startDate}
-          endDate={endDate}
-        />
-      </div>
-    </Grid>
   );
 }
 
