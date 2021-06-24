@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { observer } from "mobx-react";
-import UserStore from "../stores/userStore";
+import UserStore from "../../stores/userStore";
 import "../App.css";
 
 class Login extends Component {

@@ -39,6 +39,7 @@ Installation (Windows)
     npm i aws-sdk
     npm i xlsx
     npm i randomcolor
+    npm i file-saver
 
 *Deploy Static Website to S3 (Needs permissions from AWS S3 bucket)
     npm run build && aws s3 sync build/ s3://bucket-name
