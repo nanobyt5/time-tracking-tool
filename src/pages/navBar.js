@@ -5,7 +5,7 @@ function NavBar() {
 
     const navStyle = {
         color: 'white',
-        textDecoration: 'none',
+        textDecoration: 'none'
     };
 
     return (
