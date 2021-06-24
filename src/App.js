@@ -1,17 +1,17 @@
 import React from 'react';
+import './App.css';
 // import Home from './pages/home';
 // import Login from './pages/login';
 import Time from './pages/time';
 import Sprint from './pages/sprint';
 import Files from './pages/files';
 import Navbar from './pages/navBar';
-import './App.css';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 function App() {
   return (
     <Router>
-      <div className="App">
+      <div className='App'>
         <Navbar />
         <Switch>
           <Route path="/" exact component={Time} />

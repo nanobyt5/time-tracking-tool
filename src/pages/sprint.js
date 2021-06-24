@@ -1,10 +1,10 @@
 import React from "react";
-import SprintVelocity from "../components/sprint";
+import SprintVelocityComponent from '../components/sprintVelocityChart'
 
 function Sprint() {
     return (
         <div>
-            <SprintVelocity />
+            <SprintVelocityComponent />
         </div>
     );
 }
