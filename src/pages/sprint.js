@@ -1,12 +1,12 @@
 import React from "react";
 import SprintVelocityComponent from '../components/sprintVelocityChart'
 
-function SprintVelocity() {
+function Sprint() {
     return (
         <div>
             <SprintVelocityComponent />
         </div>
-    )
+    );
 }
 
-export default SprintVelocity;
+export default Sprint;

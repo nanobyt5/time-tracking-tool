@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { URLServer } from "../stores/urlServer";
+import { URLServer } from "../../stores/urlServer";
 
 const newHero = {
   name: "White Adam",
