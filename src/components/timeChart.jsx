@@ -9,6 +9,10 @@ function TimeChart(props) {
     let labels = [];
     let data = [];
     const getChartData = () => {
+        if (!groupBy) {
+            return;
+        }
+
         let lookUp = {};
 
         db.forEach(entry => {
