@@ -1,10 +1,11 @@
 import React from "react";
-import CsvReaderComponent from "../components/CsvReader";
+import TimeComponent from "../components/time";
 
 function Time() {
+
     return (
         <div>
-            <CsvReaderComponent />
+            <TimeComponent />
         </div>
     );
 }
