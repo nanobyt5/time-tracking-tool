@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {DualAxes} from "@ant-design/charts";
 import {Form, Input, Table} from "antd";
+import * as XLSX from "xlsx";
 
 const EditableContext = React.createContext(null);
 
@@ -107,10 +108,10 @@ const COLUMNS = [
     }
 ];
 
-function SprintVelocityChart(props) {
-    const [barData, setBarData] = useState(props.barData);
-    const [lineData, setLineData] = useState(props.lineData);
-    const [tableData, setTableData] = useState(props.tableData);
+function SprintVelocityChart() {
+    const [barData, setBarData] = useState([]);
+    const [lineData, setLineData] = useState([]);
+    const [tableData, setTableData] = useState([]);
 
     const saveNewBarData = (key, sprint, capacity, completed) => {
         const newBarData = [...barData];
@@ -185,6 +186,134 @@ function SprintVelocityChart(props) {
         saveNewLineData(key, sprint, velocity);
     }
 
+    const populateData = (lookUp, sprints) => {
+        let barData = [];
+        let lineData = [];
+        let tableData = [];
+        let i = 0;
+
+        sprints.forEach(sprint => {
+            let currSprint = lookUp[sprint];
+            let hours = currSprint["hours"];
+            let storyPoints = currSprint["storyPoints"];
+            let velocity = storyPoints / (hours / 8);
+
+            barData.push(
+                {
+                    key: `${i}.1`,
+                    sprint: sprint,
+                    value: hours,
+                    type: 'Time Spent'
+                },
+                {
+                    key: `${i}.2`,
+                    sprint: sprint,
+                    value: storyPoints,
+                    type: 'Total Story Points'
+                })
+
+            lineData.push({
+                key: i,
+                sprint: sprint,
+                velocity: velocity
+            })
+
+            tableData.push(
+                {
+                    key: i++,
+                    sprint: sprint,
+                    capacity: hours,
+                    completed: storyPoints,
+                    velocity: velocity
+                }
+            )
+        })
+
+        setTableData(tableData);
+        setBarData(barData);
+        setLineData(lineData);
+    }
+
+    const getChartData = (list) => {
+        let lookUp = {};
+        let sprints = [];
+
+        list.filter(entry => entry["Team"] === "Tech Team" && entry["Story Points Completed"] !== "")
+            .forEach(entry => {
+                let sprint = entry["Sprint Cycle"];
+                let hours = parseFloat(entry["Hours"]);
+                let storyPoints = parseFloat(entry["Story Points Completed"]);
+
+                if (!(sprint in lookUp)) {
+                    lookUp[sprint] = {
+                        hours: hours,
+                        storyPoints: storyPoints
+                    };
+                    sprints.push(sprint);
+                } else {
+                    let currEntry = lookUp[sprint];
+                    currEntry["hours"] += hours;
+                    currEntry["storyPoints"] += storyPoints;
+                    lookUp[sprint] = currEntry;
+                }
+            })
+
+        sprints.sort();
+
+        populateData(lookUp, sprints);
+    }
+
+    // process CSV data
+    const processData = dataString => {
+        const dataStringLines = dataString.split(/\r\n|\n/);
+        const headers = dataStringLines[0].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
+
+        const list = [];
+        for (let i = 1; i < dataStringLines.length; i++) {
+            const row = dataStringLines[i].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
+            if (headers && row.length === headers.length) {
+                const obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    let d = row[j];
+                    if (d.length > 0) {
+                        if (d[0] === '"')
+                            d = d.substring(1, d.length - 1);
+                        if (d[d.length - 1] === '"')
+                            d = d.substring(d.length - 2, 1);
+                    }
+                    if (headers[j]) {
+                        obj[headers[j]] = d;
+                    }
+                }
+
+                // remove the blank rows
+                if (Object.values(obj).filter(x => x).length > 0) {
+                    list.push(obj);
+                }
+            }
+        }
+
+        getChartData(list);
+    }
+
+    // handle file upload
+    const handleFileUpload = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            /* Parse data */
+            const bStr = evt.target.result;
+            const wb = XLSX.read(bStr, { type: 'binary' });
+            /* Get first worksheet */
+            const wsName = wb.SheetNames[0];
+            const ws = wb.Sheets[wsName];
+            /* Convert array of arrays */
+            const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+            processData(data);
+        };
+        reader.readAsBinaryString(file);
+    }
+
     const components = {
         body: {
             row: EditableRow,
@@ -227,9 +356,18 @@ function SprintVelocityChart(props) {
         ],
     };
 
+    const UploadFileComponent = () => (
+        <input
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            onChange={handleFileUpload}
+        />
+    );
+
     const titleComponent = () => (
       <div style={{ margin:"5px", display:"flex", justifyContent:"space-between", width:"700px" }}>
           <h2>Sprint Velocity</h2>
+          {UploadFileComponent()}
       </div>
     );
 
