@@ -112,6 +112,8 @@ function SprintVelocityChart() {
     const [barData, setBarData] = useState([]);
     const [lineData, setLineData] = useState([]);
     const [tableData, setTableData] = useState([]);
+    const [maxValue, setMaxValue] = useState(0);
+    const [maxVelocity, setMaxVelocity] = useState(0);
 
     const saveNewBarData = (key, sprint, capacity, completed) => {
         const newBarData = [...barData];
@@ -180,6 +182,23 @@ function SprintVelocityChart() {
         let capacityParse = parseFloat(capacity);
         let completedParse = parseFloat(completed);
         let velocity = completedParse / (capacityParse / 8);
+        let tempMaxValue = 0;
+
+        if (tempMaxValue < capacityParse) {
+            tempMaxValue = capacityParse;
+        }
+
+        if (tempMaxValue < completedParse) {
+            tempMaxValue = completedParse;
+        }
+
+        if (maxValue < tempMaxValue) {
+            setMaxValue(tempMaxValue);
+        }
+
+        if (maxVelocity < velocity) {
+            setMaxVelocity(velocity);
+        }
 
         saveNewTableData(key, sprint, capacityParse, completedParse, velocity);
         saveNewBarData(key, sprint, capacityParse, completedParse);
@@ -190,6 +209,8 @@ function SprintVelocityChart() {
         let barData = [];
         let lineData = [];
         let tableData = [];
+        let tempMaxVal = 0;
+        let tempMaxVel = 0;
         let i = 0;
 
         sprints.forEach(sprint => {
@@ -197,6 +218,18 @@ function SprintVelocityChart() {
             let hours = currSprint["hours"];
             let storyPoints = currSprint["storyPoints"];
             let velocity = storyPoints / (hours / 8);
+
+            if (tempMaxVal < hours) {
+                tempMaxVal = hours;
+            }
+
+            if (tempMaxVal < storyPoints) {
+                tempMaxVal = storyPoints;
+            }
+
+            if (tempMaxVel < velocity) {
+                tempMaxVel = velocity;
+            }
 
             barData.push(
                 {
@@ -229,6 +262,8 @@ function SprintVelocityChart() {
             )
         })
 
+        setMaxVelocity(tempMaxVel);
+        setMaxValue(tempMaxVal);
         setTableData(tableData);
         setBarData(barData);
         setLineData(lineData);
@@ -342,6 +377,15 @@ function SprintVelocityChart() {
         data: [barData, lineData],
         xField: 'sprint',
         yField: ['value', 'velocity'],
+        yAxis: {
+            value: {
+                max: maxValue + 1,
+            },
+            velocity: {
+                max: maxVelocity + 1,
+                min: 0
+            }
+        },
         geometryOptions: [
             {
                 geometry: 'column',
@@ -351,7 +395,6 @@ function SprintVelocityChart() {
             {
                 geometry: 'line',
                 lineStyle: { lineWidth: 2 },
-                isStack: true
             },
         ],
     };
@@ -385,7 +428,7 @@ function SprintVelocityChart() {
     );
 
     const multiAxesComponent = () => (
-        <div className="chart" style={{ width:"60%", height:"500px" }}>
+        <div className="chart" style={{ width:"60%", height:"60vh" }}>
             <DualAxes
                 {...config}
             />
