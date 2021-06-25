@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { DatePicker } from "antd";
-import { FormLabel, Grid } from "@material-ui/core";
-import { Select } from "antd";
+import React, {useEffect, useState} from "react";
+import {DatePicker, Select} from "antd";
+import {FormLabel, Grid} from "@material-ui/core";
 import DataGrid, {
   Column,
   Export,
@@ -15,7 +14,6 @@ import * as XLSX from "xlsx";
 
 // import LightCSS from "devextreme/dist/css/dx.light.css";
 // import ANTDCSS from "antd/dist/antd.css";
-
 import TimeChart from "./timeChart";
 import moment from "moment";
 
@@ -67,6 +65,8 @@ const INITIAL_GROUP_BY = "activity";
 
 function Time() {
   const [db, setDb] = useState([]);
+  const [minDate, setMinDate] = useState(new Date());
+  const [maxDate, setMaxDate] = useState(new Date());
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [team, setTeam] = useState([]);
@@ -119,6 +119,9 @@ function Time() {
         }
       }
     }
+
+    setMinDate(tempStartDate);
+    setMaxDate(tempEndDate);
 
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
@@ -282,13 +285,13 @@ function Time() {
     options,
     onChange
   ) => (
-    <div className={className} style={{ width: 200 }}>
+    <div className={className} style={{ width: '20%' }}>
       <FormLabel style={{ fontWeight: 'bold' }}>{labelText}</FormLabel>
       <Select
         mode="multiple"
         allowClear
         placeholder="No filter"
-        style={{ width: "200px" }}
+        style={{ width: "100%" }}
         value={selectName}
         onChange={onChange}
         tokenSeparators={[","]}
@@ -318,7 +321,7 @@ function Time() {
   );
 
   const uploadFileComponent = () => (
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: 180 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: "18%" }}>
         <input
             type="file"
             accept=".csv,.xlsx,.xls"
@@ -327,12 +330,16 @@ function Time() {
       </div>
   );
 
+  const checkDate = (date) => {
+    return date < moment(minDate) || date > moment(maxDate);
+  }
+
   const datePickerRow = () => (
     <div>
-      <FormLabel style={{ margin: 5 }}>Date:</FormLabel>
       <RangePicker
         value={[moment(startDate), moment(endDate)]}
         onChange={changeDate}
+        disabledDate={checkDate}
       />
     </div>
   );
