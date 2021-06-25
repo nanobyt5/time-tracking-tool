@@ -1,18 +1,26 @@
-import React from "react";
+import React, {useState} from "react";
 import {Column, Pie} from "@ant-design/charts";
+import {Radio} from "antd";
+
+const CHART_TYPES = [
+    { value: "bar", label: "Bar Chart" },
+    { value: "donut", label: "Doughnut Chart" },
+];
+
+const INITIAL_CHART_TYPE = "donut";
 
 function TimeChart(props) {
-    let db = props.data;
-    let groupBy = props.groupBy;
-    let chartType = props.chartType;
+    const db = props.data;
+    const groupBy = props.groupBy;
+    const [chartType, setChartType] = useState(INITIAL_CHART_TYPE);
 
-    let labels = [];
     let data = [];
     const getChartData = () => {
         if (!groupBy) {
             return;
         }
 
+        let labels = [];
         let lookUp = {};
 
         db.forEach(entry => {
@@ -102,7 +110,7 @@ function TimeChart(props) {
             },
             legend: {
                 layout: 'horizontal',
-                position: 'top'
+                position: 'bottom'
             }
         }
     )
@@ -116,7 +124,7 @@ function TimeChart(props) {
                     />
                 )
 
-            case "doughnut":
+            case "donut":
                 return (
                     <Pie
                         {...getDonutConfig()}
@@ -128,15 +136,40 @@ function TimeChart(props) {
         }
     };
 
+    const changeChartType = (e) => {
+        setChartType(e.target.value);
+    };
+
+    const radioComponent = (
+        className,
+        selectName,
+        radios,
+        onChange
+    ) => (
+        <div className={className} style={{ width: "100%", display: 'flex', justifyContent: 'center', margin: 5 }}>
+            <Radio.Group value={selectName} onChange={onChange}>
+                {radios.map((radio) => (
+                    <Radio value={radio["value"]}>{radio["label"]}</Radio>
+                ))}
+            </Radio.Group>
+        </div>
+    )
+
     return(
         <div>
             <div className="chart" style={{
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
-                height: "60vh",
+                height: "80vh",
                 margin: "5px"
             }}>
+                {radioComponent(
+                    "chartTypeForm",
+                    chartType,
+                    CHART_TYPES,
+                    changeChartType
+                )}
                 {getChart()}
             </div>
         </div>

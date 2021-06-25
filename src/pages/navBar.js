@@ -10,7 +10,7 @@ function NavBar() {
 
     return (
         <nav>
-            <h2>Time Tracking Tool</h2>
+            <h2 style={{ color: 'white' }}>Time Tracking Tool</h2>
             <ul className="nav-links">
                 <Link style={navStyle} to="/">
                     <li>Time Spent</li>

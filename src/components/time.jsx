@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DatePicker } from "antd";
 import { FormLabel, Grid } from "@material-ui/core";
-import { Select, Radio } from "antd";
+import { Select } from "antd";
 import DataGrid, {
   Column,
   Export,
@@ -63,14 +63,7 @@ const GROUP_METHODS = [
   { value: "teamMember", label: "User" },
 ];
 
-const CHART_TYPES = [
-  { value: "bar", label: "Bar Chart" },
-  { value: "doughnut", label: "Doughnut Chart" },
-];
-
 const INITIAL_GROUP_BY = "activity";
-
-const INITIAL_CHART_TYPE = "doughnut";
 
 function Time() {
   const [db, setDb] = useState([]);
@@ -81,7 +74,6 @@ function Time() {
   const [activity, setActivity] = useState([]);
   const [tags, setTags] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
-  const [chartType, setChartType] = useState(INITIAL_CHART_TYPE);
   const [columns, setColumns] = useState(COLUMNS);
 
   // process CSV data
@@ -231,10 +223,6 @@ function Time() {
     setGroupBy(newGroupBy);
   };
 
-  const changeChartType = (e) => {
-    setChartType(e.target.value);
-  };
-
   const getAllFromDb = (toGet) => {
     const lookUp = {};
     const toGets = [];
@@ -295,12 +283,12 @@ function Time() {
     onChange
   ) => (
     <div className={className} style={{ width: 200 }}>
-      <FormLabel style={{ margin: 5, fontWeight: 'bold' }}>{labelText}</FormLabel>
+      <FormLabel style={{ fontWeight: 'bold' }}>{labelText}</FormLabel>
       <Select
         mode="multiple"
         allowClear
         placeholder="No filter"
-        style={{ width: "200px", margin: "5px" }}
+        style={{ width: "200px" }}
         value={selectName}
         onChange={onChange}
         tokenSeparators={[","]}
@@ -319,9 +307,9 @@ function Time() {
     options,
     onChange
   ) => (
-    <div className={className} style={{ width: "250px" }}>
+    <div className={className} >
       <FormLabel style={{ margin: 5 }}>{labelText}</FormLabel>
-      <Select value={selectName} onChange={onChange} size="large">
+      <Select value={selectName} onChange={onChange} size="medium">
         {options.map((option) => (
           <Option value={option["value"]}>{option["label"]}</Option>
         ))}
@@ -329,23 +317,8 @@ function Time() {
     </div>
   );
 
-  const radioComponent = (
-      className,
-      selectName,
-      radios,
-      onChange
-  ) => (
-      <div className={className} style={{ width: "250px", display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <Radio.Group value={selectName} onChange={onChange}>
-          {radios.map((radio) => (
-              <Radio value={radio["value"]}>{radio["label"]}</Radio>
-          ))}
-        </Radio.Group>
-      </div>
-  )
-
   const uploadFileComponent = () => (
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: 180 }}>
         <input
             type="file"
             accept=".csv,.xlsx,.xls"
@@ -358,7 +331,6 @@ function Time() {
     <div>
       <FormLabel style={{ margin: 5 }}>Date:</FormLabel>
       <RangePicker
-        size="large"
         value={[moment(startDate), moment(endDate)]}
         onChange={changeDate}
       />
@@ -371,6 +343,7 @@ function Time() {
       dataSource={data}
       showBorders={true}
       wordWrapEnabled={true}
+      style={{ margin: 5 }}
     >
       <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
       <Selection mode={"single"} />
@@ -422,7 +395,7 @@ function Time() {
   )
 
   const filterOptionsComponent = () => (
-      <Grid container justify={"space-evenly"} style={{ margin: 5 }}>
+      <Grid container justify={"space-evenly"} >
         {selectMultiComponent(
             "teamForm",
             "Team:",
@@ -451,36 +424,27 @@ function Time() {
             allTags,
             changeTags
         )}
-        {radioComponent(
-            "chartTypeForm",
-            chartType,
-            CHART_TYPES,
-            changeChartType
-        )}
       </Grid>
   );
 
   const secondRowComponent = () => (
-      <Grid container justify={'space-evenly'} style={{ margin: 5 }}>
+      <Grid container justify={'space-evenly'} >
         {filterOptionsComponent()}
       </Grid>
   )
 
   return (
       <div>
-        {firstRowComponent()}
-        {secondRowComponent()}
         <Grid container justify={"space-evenly"}>
           <div style={{ width: '49%', margin: 5 }}>
+            {firstRowComponent()}
+            {secondRowComponent()}
             {dataGridComponent()}
           </div>
           <div className="donutChart" style={{ width: "49%" }}>
             <TimeChart
               data={data}
               groupBy={groupBy}
-              chartType={chartType}
-              startDate={startDate}
-              endDate={endDate}
             />
           </div>
         </Grid>
