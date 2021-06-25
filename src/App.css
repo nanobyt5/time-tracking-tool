@@ -31,7 +31,7 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 10vh;
+  min-height: 7vh;
   background: #e3f2fd;
   color: white;
   padding: 0 5%;
@@ -71,5 +71,5 @@ h6 {
 }
 
 .mainBody {
-  padding: 3% 5%;
+  padding: 2% 3%;
 }
