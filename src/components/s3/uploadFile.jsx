@@ -3,7 +3,7 @@ import React, { Component } from "react";
 class UploadFile extends Component {
   render() {
     return (
-      <li>
+      <div>
         <input
           type="file"
           name="uploadFile"
@@ -12,7 +12,7 @@ class UploadFile extends Component {
         <button type="button" onClick={this.props.handleOnUpload.bind(this)}>
           Upload
         </button>
-      </li>
+      </div>
     );
   }
 }

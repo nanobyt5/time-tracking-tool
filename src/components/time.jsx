@@ -13,9 +13,6 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 import * as XLSX from "xlsx";
 
-// import LightCSS from "devextreme/dist/css/dx.light.css";
-// import ANTDCSS from "antd/dist/antd.css";
-
 import TimeChart from "./timeChart";
 import moment from "moment";
 
