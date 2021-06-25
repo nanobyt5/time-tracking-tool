@@ -1,26 +1,24 @@
 import React from "react"
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 function NavBar() {
-
-    const navStyle = {
-        color: 'white',
-        textDecoration: 'none'
+    const boldStyle = {
+        fontWeight: "bold"
     };
 
     return (
         <nav>
-            <h2 style={{ color: 'white' }}>Time Tracking Tool</h2>
+            <h5>Time Tracking Tool</h5>
             <ul className="nav-links">
-                <Link style={navStyle} to="/">
+                <NavLink exact activeStyle={boldStyle} to="/">
                     <li>Time Spent</li>
-                </Link>
-                <Link style={navStyle} to="/sprint">
+                </NavLink>
+                <NavLink activeStyle={boldStyle} to="/sprint">
                     <li>Sprint Velocity</li>
-                </Link>
-                <Link style={navStyle} to="/files">
+                </NavLink>
+                <NavLink activeStyle={boldStyle} to="/files">
                     <li>Uploaded Files</li>
-                </Link>
+                </NavLink>
             </ul>
         </nav>
     );
