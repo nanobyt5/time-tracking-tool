@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {DualAxes} from "@ant-design/charts";
-import {Form, Input, Table} from "antd";
+import {Form, InputNumber, Table} from "antd";
 import * as XLSX from "xlsx";
 
 const EditableContext = React.createContext(null);
@@ -69,7 +69,7 @@ const EditableCell = ({
                     },
                 ]}
             >
-                <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+                <InputNumber ref={inputRef} onPressEnter={save} onBlur={save} min={1} />
             </Form.Item>
         ) : (
             <div
@@ -112,8 +112,6 @@ function SprintVelocityChart() {
     const [barData, setBarData] = useState([]);
     const [lineData, setLineData] = useState([]);
     const [tableData, setTableData] = useState([]);
-    const [maxValue, setMaxValue] = useState(0);
-    const [maxVelocity, setMaxVelocity] = useState(0);
 
     const saveNewBarData = (key, sprint, capacity, completed) => {
         const newBarData = [...barData];
@@ -124,7 +122,7 @@ function SprintVelocityChart() {
             key: key + '.1',
             sprint: sprint,
             value: capacity,
-            type: 'Time Spent'
+            type: 'Capacity'
         };
 
         newBarData.splice(timeIndex, 1, { ...timeItem, ...newTimeItem });
@@ -136,7 +134,7 @@ function SprintVelocityChart() {
             key: key + '.2',
             sprint: sprint,
             value: completed,
-            type: 'Total Story Points'
+            type: 'Completed Story Points'
         };
 
         newBarData.splice(storyIndex, 1, { ...storyItem, ...newStoryItem });
@@ -182,23 +180,6 @@ function SprintVelocityChart() {
         let capacityParse = parseFloat(capacity);
         let completedParse = parseFloat(completed);
         let velocity = completedParse / (capacityParse / 8);
-        let tempMaxValue = 0;
-
-        if (tempMaxValue < capacityParse) {
-            tempMaxValue = capacityParse;
-        }
-
-        if (tempMaxValue < completedParse) {
-            tempMaxValue = completedParse;
-        }
-
-        if (maxValue < tempMaxValue) {
-            setMaxValue(tempMaxValue);
-        }
-
-        if (maxVelocity < velocity) {
-            setMaxVelocity(velocity);
-        }
 
         saveNewTableData(key, sprint, capacityParse, completedParse, velocity);
         saveNewBarData(key, sprint, capacityParse, completedParse);
@@ -236,13 +217,13 @@ function SprintVelocityChart() {
                     key: `${i}.1`,
                     sprint: sprint,
                     value: hours,
-                    type: 'Time Spent'
+                    type: 'Capacity'
                 },
                 {
                     key: `${i}.2`,
                     sprint: sprint,
                     value: storyPoints,
-                    type: 'Total Story Points'
+                    type: 'Completed Story Points'
                 })
 
             lineData.push({
@@ -262,8 +243,6 @@ function SprintVelocityChart() {
             )
         })
 
-        setMaxVelocity(tempMaxVel);
-        setMaxValue(tempMaxVal);
         setTableData(tableData);
         setBarData(barData);
         setLineData(lineData);
@@ -378,13 +357,10 @@ function SprintVelocityChart() {
         xField: 'sprint',
         yField: ['value', 'velocity'],
         yAxis: {
-            value: {
-                max: maxValue + 1,
-            },
-            velocity: {
-                max: maxVelocity + 1,
-                min: 0
-            }
+          velocity: {
+              min: 0,
+              max: 5
+          }
         },
         geometryOptions: [
             {
@@ -397,6 +373,11 @@ function SprintVelocityChart() {
                 lineStyle: { lineWidth: 2 },
             },
         ],
+        legend: {
+            layout: 'horizontal',
+            position: 'bottom'
+        },
+        height: 600,
     };
 
     const UploadFileComponent = () => (
@@ -428,7 +409,7 @@ function SprintVelocityChart() {
     );
 
     const multiAxesComponent = () => (
-        <div className="chart" style={{ width:"60%", height:"60vh" }}>
+        <div className="chart" style={{ width: "60%", height: "70vh" }}>
             <DualAxes
                 {...config}
             />
