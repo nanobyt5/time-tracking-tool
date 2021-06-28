@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {DualAxes} from "@ant-design/charts";
-import {Form, Input, Table} from "antd";
+import {Form, InputNumber, Table} from "antd";
 import * as XLSX from "xlsx";
 
 const EditableContext = React.createContext(null);
@@ -69,7 +69,7 @@ const EditableCell = ({
                     },
                 ]}
             >
-                <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+                <InputNumber ref={inputRef} onPressEnter={save} onBlur={save} min={1} />
             </Form.Item>
         ) : (
             <div
@@ -122,7 +122,7 @@ function SprintVelocityChart() {
             key: key + '.1',
             sprint: sprint,
             value: capacity,
-            type: 'Time Spent'
+            type: 'Capacity'
         };
 
         newBarData.splice(timeIndex, 1, { ...timeItem, ...newTimeItem });
@@ -134,7 +134,7 @@ function SprintVelocityChart() {
             key: key + '.2',
             sprint: sprint,
             value: completed,
-            type: 'Total Story Points'
+            type: 'Completed Story Points'
         };
 
         newBarData.splice(storyIndex, 1, { ...storyItem, ...newStoryItem });
@@ -190,6 +190,8 @@ function SprintVelocityChart() {
         let barData = [];
         let lineData = [];
         let tableData = [];
+        let tempMaxVal = 0;
+        let tempMaxVel = 0;
         let i = 0;
 
         sprints.forEach(sprint => {
@@ -198,18 +200,30 @@ function SprintVelocityChart() {
             let storyPoints = currSprint["storyPoints"];
             let velocity = storyPoints / (hours / 8);
 
+            if (tempMaxVal < hours) {
+                tempMaxVal = hours;
+            }
+
+            if (tempMaxVal < storyPoints) {
+                tempMaxVal = storyPoints;
+            }
+
+            if (tempMaxVel < velocity) {
+                tempMaxVel = velocity;
+            }
+
             barData.push(
                 {
                     key: `${i}.1`,
                     sprint: sprint,
                     value: hours,
-                    type: 'Time Spent'
+                    type: 'Capacity'
                 },
                 {
                     key: `${i}.2`,
                     sprint: sprint,
                     value: storyPoints,
-                    type: 'Total Story Points'
+                    type: 'Completed Story Points'
                 })
 
             lineData.push({
@@ -342,6 +356,12 @@ function SprintVelocityChart() {
         data: [barData, lineData],
         xField: 'sprint',
         yField: ['value', 'velocity'],
+        yAxis: {
+          velocity: {
+              min: 0,
+              max: 5
+          }
+        },
         geometryOptions: [
             {
                 geometry: 'column',
@@ -351,9 +371,13 @@ function SprintVelocityChart() {
             {
                 geometry: 'line',
                 lineStyle: { lineWidth: 2 },
-                isStack: true
             },
         ],
+        legend: {
+            layout: 'horizontal',
+            position: 'bottom'
+        },
+        height: 600,
     };
 
     const UploadFileComponent = () => (
@@ -385,7 +409,7 @@ function SprintVelocityChart() {
     );
 
     const multiAxesComponent = () => (
-        <div className="chart" style={{ width:"60%", height:"500px" }}>
+        <div className="chart" style={{ width: "60%", height: "70vh" }}>
             <DualAxes
                 {...config}
             />
