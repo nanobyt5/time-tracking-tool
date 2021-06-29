@@ -131,6 +131,10 @@ function Time() {
   // handle file upload
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (evt) => {
       /* Parse data */
