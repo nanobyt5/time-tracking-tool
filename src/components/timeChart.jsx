@@ -2,6 +2,8 @@ import React, {useState} from "react";
 import {Column, Pie} from "@ant-design/charts";
 import {Radio} from "antd";
 
+import '../css/timeChart.css';
+
 const CHART_TYPES = [
     { value: "bar", label: "Bar Chart" },
     { value: "donut", label: "Doughnut Chart" },
@@ -146,7 +148,7 @@ function TimeChart(props) {
         radios,
         onChange
     ) => (
-        <div className={className} style={{ width: "100%", display: 'flex', justifyContent: 'center', margin: 5 }}>
+        <div className={className}>
             <Radio.Group value={selectName} onChange={onChange}>
                 {radios.map((radio) => (
                     <Radio value={radio["value"]}>{radio["label"]}</Radio>
@@ -157,13 +159,7 @@ function TimeChart(props) {
 
     return(
         <div>
-            <div className="chart" style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                height: "80vh",
-                margin: "5px"
-            }}>
+            <div className="timeChart">
                 {radioComponent(
                     "chartTypeForm",
                     chartType,

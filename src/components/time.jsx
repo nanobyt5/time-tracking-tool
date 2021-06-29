@@ -314,7 +314,7 @@ function Time() {
   ) => (
     <div className='selectSingleComponent' >
       <FormLabel style={{ margin: 5 }}>{labelText}</FormLabel>
-      <Select value={selectName} onChange={onChange} size="medium">
+      <Select value={selectName} onChange={onChange} size="medium" style={{ width: '60%' }}>
         {options.map((option) => (
           <Option value={option["value"]}>{option["label"]}</Option>
         ))}
