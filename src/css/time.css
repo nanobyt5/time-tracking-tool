@@ -1,0 +1,92 @@
+.firstRow {
+    display: flex;
+    margin: 2px;
+    justify-content: space-between;
+    width: 45%;
+}
+
+.datePickerRow {
+    width: 35%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 5px;
+}
+
+.uploadFileComponent {
+    width: 30%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 5px;
+}
+
+.selectSingleComponent {
+    width: 25%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin: 5px;
+}
+
+.secondRow {
+    margin: 3px;
+    display: flex;
+    justify-content: center;
+}
+
+.selectMultiComponent {
+    margin: 5px;
+    width: 20%;
+    height: 100%;
+    justify-content: center;
+}
+
+.tableWithForms {
+    width: 49%;
+    margin: 5px;
+}
+
+.donutChart {
+    width: 49%;
+    margin: 5px;
+}
+
+@media screen and (max-width: 1060px) {
+    .tableWithForms {
+        width: 100%;
+        margin: 5px;
+    }
+
+    .donutChart {
+        width: 100%;
+        margin: 5px;
+    }
+}
+
+@media screen and (max-width: 550px) {
+    .firstRow {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px;
+    }
+
+    .uploadFileComponent {
+        display: flex;
+        justify-self: flex-start;
+        width: 100%;
+    }
+
+    .datePickerRow {
+        width: 55%;
+    }
+
+    .selectSingleComponent {
+        width: 39%;
+    }
+
+    .selectMultiComponent {
+        width: 45%;
+    }
+}
