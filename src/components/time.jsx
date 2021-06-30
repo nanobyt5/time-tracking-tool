@@ -12,6 +12,8 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 import * as XLSX from "xlsx";
 
+import '../css/time.css';
+
 import TimeChart from "./timeChart";
 import moment from "moment";
 
@@ -129,6 +131,10 @@ function Time() {
   // handle file upload
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (evt) => {
       /* Parse data */
@@ -277,13 +283,12 @@ function Time() {
   }, [groupBy]);
 
   const selectMultiComponent = (
-    className,
     labelText,
     selectName,
     options,
     onChange
   ) => (
-    <div className={className} style={{ width: '20%' }}>
+    <div className='selectMultiComponent'>
       <FormLabel style={{ fontWeight: 'bold' }}>{labelText}</FormLabel>
       <Select
         mode="multiple"
@@ -302,15 +307,14 @@ function Time() {
   );
 
   const selectSingleComponent = (
-    className,
     labelText,
     selectName,
     options,
     onChange
   ) => (
-    <div className={className} >
+    <div className='selectSingleComponent' >
       <FormLabel style={{ margin: 5 }}>{labelText}</FormLabel>
-      <Select value={selectName} onChange={onChange} size="medium">
+      <Select value={selectName} onChange={onChange} size="medium" style={{ width: '60%' }}>
         {options.map((option) => (
           <Option value={option["value"]}>{option["label"]}</Option>
         ))}
@@ -319,7 +323,7 @@ function Time() {
   );
 
   const uploadFileComponent = () => (
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: "18%" }}>
+      <div className='uploadFileComponent' >
         <input
             type="file"
             accept=".csv,.xlsx,.xls"
@@ -333,7 +337,7 @@ function Time() {
   }
 
   const datePickerRow = () => (
-    <div>
+    <div className='datePickerRow'>
       <RangePicker
         value={[moment(startDate), moment(endDate)]}
         onChange={changeDate}
@@ -386,11 +390,10 @@ function Time() {
   );
 
   const firstRowComponent = () => (
-      <Grid container justify={'space-evenly'} style={{ margin: 5, padding: 5 }}>
+      <Grid container className='firstRow'>
         {uploadFileComponent()}
         {datePickerRow()}
         {selectSingleComponent(
-            "sortForm",
             "Group By:",
             groupBy,
             GROUP_METHODS,
@@ -399,54 +402,44 @@ function Time() {
       </Grid>
   )
 
-  const filterOptionsComponent = () => (
-      <Grid container justify={"space-evenly"} >
+  const secondRowComponent = () => (
+      <Grid container justify={"space-between"} className='secondRow'>
         {selectMultiComponent(
-            "teamForm",
             "Team:",
             team,
             allTeams,
             changeTeam
         )}
         {selectMultiComponent(
-            "userForm",
             "Team Member:",
             teamMember,
             allTeamMembers,
             changeTeamMembers
         )}
         {selectMultiComponent(
-            "activityForm",
             "Activity:",
             activity,
             allActivities,
             changeActivities
         )}
         {selectMultiComponent(
-            "tagForm",
             "Tags:",
             tags,
             allTags,
             changeTags
         )}
       </Grid>
-  );
-
-  const secondRowComponent = () => (
-      <Grid container justify={'space-evenly'} >
-        {filterOptionsComponent()}
-      </Grid>
   )
 
   return (
       <div>
         <Grid container justify={"space-evenly"}>
-          <div style={{ width: '49%', margin: 5 }}>
+          <div className='tableWithForms'>
             {firstRowComponent()}
             {secondRowComponent()}
             {dataGridComponent()}
           </div>
-          <div className="donutChart" style={{ width: "49%" }}>
+          <div className="donutChart">
             <TimeChart
               data={data}
               groupBy={groupBy}
