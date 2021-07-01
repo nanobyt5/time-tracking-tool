@@ -1,98 +1,13 @@
-import React, {useContext, useEffect, useRef, useState} from "react";
+import React, {useState} from "react";
 import {DualAxes} from "@ant-design/charts";
-import {Form, InputNumber, Table} from "antd";
 import * as XLSX from "xlsx";
 import DataGrid, {
     Column,
     Editing,
     Grouping,
     GroupItem,
-    Selection, Summary, TotalItem
+    Selection, Summary
 } from "devextreme-react/data-grid";
-
-const EditableContext = React.createContext(null);
-
-const EditableRow = ({ index, ...props }) => {
-    const [form] = Form.useForm();
-
-    return (
-        <Form form={form} component={false}>
-            <EditableContext.Provider value={form}>
-                <tr {...props} />
-            </EditableContext.Provider>
-        </Form>
-    )
-};
-
-const EditableCell = ({
-    title,
-    editable,
-    children,
-    dataIndex,
-    record,
-    handleSave,
-    ...restProps
-}) => {
-    const [editing, setEditing] = useState(false);
-    const inputRef = useRef(null);
-    const form = useContext(EditableContext);
-
-    useEffect(() => {
-        if (editing) {
-            inputRef.current.focus();
-        }
-    }, [editing]);
-
-    const toggleEdit = () => {
-        setEditing(!editing);
-        form.setFieldsValue({
-            [dataIndex]: record[dataIndex]
-        })
-    }
-
-    const save = async () => {
-        try {
-            const values = await form.validateFields();
-            toggleEdit();
-            handleSave({ ...record, ...values });
-        } catch (errInfo) {
-            console.log('Save failed:', errInfo);
-        }
-    }
-
-    let childNode = children;
-
-    if (editable) {
-        childNode = editing ? (
-            <Form.Item
-                style={{
-                    margin: 0,
-                }}
-                name={dataIndex}
-                rules={[
-                    {
-                        required: true,
-                        message: `${title} is required.`,
-                    },
-                ]}
-            >
-                <InputNumber ref={inputRef} onPressEnter={save} onBlur={save} min={1} />
-            </Form.Item>
-        ) : (
-            <div
-                className="editable-cell-value-wrap"
-                style={{
-                    paddingRight: 24,
-                }}
-                onClick={toggleEdit}
-            >
-                {children}
-            </div>
-        );
-    }
-
-    return <td {...restProps}>{childNode}</td>
-}
 
 const COLUMNS = [
     {
@@ -373,14 +288,7 @@ function SprintVelocityChart() {
         }
     }
 
-    const components = {
-        body: {
-            row: EditableRow,
-            cell: EditableCell,
-        },
-    };
-
-    const columns = COLUMNS.map(col => {
+    COLUMNS.map(col => {
         if (!col.editable) {
             return col;
         }
@@ -395,7 +303,7 @@ function SprintVelocityChart() {
                 handleSave: handleSave,
             }),
         };
-    })
+    });
 
     let config = {
         data: [barData, lineData],
@@ -440,21 +348,8 @@ function SprintVelocityChart() {
       </div>
     );
 
-
-    const tableComponent = () => (
-        <div style={{ width:"39%", padding:"11px" }} >
-            <Table
-                components={components}
-                rowClassName={() => 'editable-row'}
-                bordered
-                dataSource={tableData}
-                columns={columns}
-            />
-        </div>
-    );
-
     const multiAxesComponent = () => (
-        <div className="chart" style={{ width: "60%", height: "70vh" }}>
+        <div className="chart" style={{ width: "100%", height: "70vh" }}>
             <DualAxes
                 {...config}
             />
@@ -508,10 +403,9 @@ function SprintVelocityChart() {
     return (
         <div>
             {titleComponent()}
-            {dataGridComponent()}
-            <div style={{ display:"flex", justifyContent:"space-evenly", margin:"5px" }}>
-                {tableComponent()}
+            <div>
                 {multiAxesComponent()}
+                {dataGridComponent()}
             </div>
         </div>
     )
