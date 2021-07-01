@@ -2,6 +2,9 @@ import React, {useContext, useEffect, useRef, useState} from "react";
 import {DualAxes} from "@ant-design/charts";
 import {Form, InputNumber, Table} from "antd";
 import * as XLSX from "xlsx";
+import DataGrid, {Column, Editing, Grouping, Paging, Selection} from "devextreme-react/data-grid";
+import DataSource from "devextreme/data/data_source";
+import ArrayStore from "devextreme/data/array_store";
 
 const EditableContext = React.createContext(null);
 
@@ -190,58 +193,58 @@ function SprintVelocityChart() {
         let barData = [];
         let lineData = [];
         let tableData = [];
-        let tempMaxVal = 0;
-        let tempMaxVel = 0;
         let i = 0;
 
         sprints.forEach(sprint => {
             let currSprint = lookUp[sprint];
-            let hours = currSprint["hours"];
-            let storyPoints = currSprint["storyPoints"];
-            let velocity = storyPoints / (hours / 8);
+            let totalCapacity = 0;
+            let totalStoryPoints = 0;
+            let j = 0;
 
-            if (tempMaxVal < hours) {
-                tempMaxVal = hours;
+            for (let name in currSprint) {
+                let currMember = currSprint[name];
+                let hours = currMember["hours"];
+                let storyPoints = currMember["storyPoints"];
+                let velocity = storyPoints / (hours / 8);
+
+                totalCapacity += hours;
+                totalStoryPoints += storyPoints;
+
+                tableData.push({
+                    id: `${i}.${j++}`,
+                    name: name,
+                    sprint: sprint,
+                    capacity: hours,
+                    completed: storyPoints,
+                    velocity: velocity
+                })
             }
 
-            if (tempMaxVal < storyPoints) {
-                tempMaxVal = storyPoints;
-            }
-
-            if (tempMaxVel < velocity) {
-                tempMaxVel = velocity;
-            }
+            let totalVelocity = totalStoryPoints / (totalCapacity / 8);
 
             barData.push(
                 {
                     key: `${i}.1`,
                     sprint: sprint,
-                    value: hours,
+                    value: totalCapacity,
                     type: 'Capacity'
                 },
                 {
                     key: `${i}.2`,
                     sprint: sprint,
-                    value: storyPoints,
+                    value: totalStoryPoints,
                     type: 'Completed Story Points'
                 })
 
             lineData.push({
-                key: i,
+                key: i++,
                 sprint: sprint,
-                velocity: velocity
+                velocity: totalVelocity
             })
-
-            tableData.push(
-                {
-                    key: i++,
-                    sprint: sprint,
-                    capacity: hours,
-                    completed: storyPoints,
-                    velocity: velocity
-                }
-            )
         })
+
+        console.log("line data", lineData);
+        console.log("bar data", barData);
 
         setTableData(tableData);
         setBarData(barData);
@@ -257,18 +260,27 @@ function SprintVelocityChart() {
                 let sprint = entry["Sprint Cycle"];
                 let hours = parseFloat(entry["Hours"]);
                 let storyPoints = parseFloat(entry["Story Points Completed"]);
+                let teamMember = entry["Team Member"];
 
                 if (!(sprint in lookUp)) {
-                    lookUp[sprint] = {
+                    lookUp[sprint] = {};
+                    lookUp[sprint][teamMember] = {
                         hours: hours,
                         storyPoints: storyPoints
                     };
                     sprints.push(sprint);
                 } else {
-                    let currEntry = lookUp[sprint];
-                    currEntry["hours"] += hours;
-                    currEntry["storyPoints"] += storyPoints;
-                    lookUp[sprint] = currEntry;
+                    let currSprint = lookUp[sprint];
+                    if (!(teamMember in currSprint)) {
+                        currSprint[teamMember] = {
+                            hours: hours,
+                            storyPoints: storyPoints
+                        }
+                    } else {
+                        let currMember = currSprint[teamMember];
+                        currMember["hours"] += hours;
+                        currMember["storyPoints"] += storyPoints;
+                    }
                 }
             })
 
@@ -313,6 +325,10 @@ function SprintVelocityChart() {
     // handle file upload
     const handleFileUpload = e => {
         const file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = (evt) => {
             /* Parse data */
@@ -416,9 +432,39 @@ function SprintVelocityChart() {
         </div>
     );
 
+    const dataGridComponent = () => (
+        <div className= 'dataGrid'>
+            <DataGrid
+                id= 'gridContainer'
+                dataSource={tableData}
+                showBorders={true}
+            >
+                <Selection mode='single' />
+                <Grouping autoExpandAll={true} />
+                <Editing
+                    mode= 'cell'
+                    allowUpdating={true}
+                />
+
+                key: i++,
+                sprint: sprint,
+                capacity: hours,
+                completed: storyPoints,
+                velocity: velocity
+
+                <Column dataField= 'sprint' caption= 'Sprint' groupIndex={0} />
+                <Column dataField= 'name' />
+                <Column dataField= 'capacity' />
+                <Column dataField= 'completed' caption= 'Completed Story Points' />
+                <Column dataField= 'velocity' />
+            </DataGrid>
+        </div>
+    )
+
     return (
         <div>
             {titleComponent()}
+            {dataGridComponent()}
             <div style={{ display:"flex", justifyContent:"space-evenly", margin:"5px" }}>
                 {tableComponent()}
                 {multiAxesComponent()}
