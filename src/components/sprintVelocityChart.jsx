@@ -2,9 +2,13 @@ import React, {useContext, useEffect, useRef, useState} from "react";
 import {DualAxes} from "@ant-design/charts";
 import {Form, InputNumber, Table} from "antd";
 import * as XLSX from "xlsx";
-import DataGrid, {Column, Editing, Grouping, Paging, Selection} from "devextreme-react/data-grid";
-import DataSource from "devextreme/data/data_source";
-import ArrayStore from "devextreme/data/array_store";
+import DataGrid, {
+    Column,
+    Editing,
+    Grouping,
+    GroupItem,
+    Selection, Summary, TotalItem
+} from "devextreme-react/data-grid";
 
 const EditableContext = React.createContext(null);
 
@@ -215,7 +219,7 @@ function SprintVelocityChart() {
                     name: name,
                     sprint: sprint,
                     capacity: hours,
-                    completed: storyPoints,
+                    storyPoints: storyPoints,
                     velocity: velocity
                 })
             }
@@ -242,9 +246,6 @@ function SprintVelocityChart() {
                 velocity: totalVelocity
             })
         })
-
-        console.log("line data", lineData);
-        console.log("bar data", barData);
 
         setTableData(tableData);
         setBarData(barData);
@@ -342,6 +343,34 @@ function SprintVelocityChart() {
             processData(data);
         };
         reader.readAsBinaryString(file);
+    }
+
+    const calculateVelocity = (options) => {
+        let process = options.summaryProcess;
+        switch (process) {
+            case "start":
+                options.totalValue = {
+                    capacity: 0,
+                    storyPoints: 0,
+                };
+                break;
+
+            case "calculate":
+                let totalCapacity = options.totalValue.capacity;
+                let currCapacity = options.value.capacity;
+                let totalStoryPoints = options.totalValue.storyPoints;
+                let currStoryPoints = options.value.storyPoints;
+                options.totalValue = {
+                    capacity: totalCapacity + currCapacity,
+                    storyPoints: totalStoryPoints + currStoryPoints
+                }
+                break;
+
+            case "finalize":
+                let finalStoryPoints = options.totalValue.storyPoints;
+                let finalCapacity = options.totalValue.capacity / 8;
+                options.totalValue = finalStoryPoints / finalCapacity
+        }
     }
 
     const components = {
@@ -446,17 +475,32 @@ function SprintVelocityChart() {
                     allowUpdating={true}
                 />
 
-                key: i++,
-                sprint: sprint,
-                capacity: hours,
-                completed: storyPoints,
-                velocity: velocity
-
                 <Column dataField= 'sprint' caption= 'Sprint' groupIndex={0} />
                 <Column dataField= 'name' />
                 <Column dataField= 'capacity' />
-                <Column dataField= 'completed' caption= 'Completed Story Points' />
+                <Column dataField= 'storyPoints' caption= 'Completed Story Points' />
                 <Column dataField= 'velocity' />
+
+                <Summary calculateCustomSummary={calculateVelocity}>
+                    <GroupItem
+                        column= "capacity"
+                        summaryType= "sum"
+                        displayFormat= "Total Capacity: {0}"
+                        alignByColumn={true}
+                    />
+                    <GroupItem
+                        column= "storyPoints"
+                        summaryType= "sum"
+                        displayFormat= "Total Story Points: {0}"
+                        alignByColumn={true}
+                    />
+                    <GroupItem
+                        summaryType= "custom"
+                        displayFormat= "Sprint Velocity: {0}"
+                        alignByColumn={true}
+                        showInColumn= 'velocity'
+                    />
+                </Summary>
             </DataGrid>
         </div>
     )
