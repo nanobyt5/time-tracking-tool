@@ -31,6 +31,7 @@ const COLUMNS = [
 ];
 
 function SprintVelocityChart() {
+    const [sprints, setSprints] = useState([]);
     const [barData, setBarData] = useState([]);
     const [lineData, setLineData] = useState([]);
     const [tableData, setTableData] = useState([]);
@@ -201,9 +202,93 @@ function SprintVelocityChart() {
             })
 
         sprints.sort();
+        setSprints(sprints);
 
         populateData(lookUp, sprints);
     }
+
+    const updateCharts = (lookUp) => {
+        let newBarData = [];
+        let newLineData = [];
+
+        sprints.forEach(sprint => {
+            let currSprint = lookUp[sprint];
+            let capacity = currSprint['capacity'];
+            let storyPoints = currSprint['storyPoints'];
+            let velocity = storyPoints / (capacity / 8);
+
+            newBarData.push(
+                {
+                    sprint: sprint,
+                    value: capacity,
+                    type: 'Capacity'
+                },
+                {
+                    sprint: sprint,
+                    value: storyPoints,
+                    type: 'Completed Story Points'
+                })
+
+            newLineData.push({
+                sprint: sprint,
+                velocity: velocity
+            })
+        })
+
+        setBarData(newBarData);
+        setLineData(newLineData);
+    }
+
+    const prepNewChartData = (newTableData) => {
+        let lookUp = {};
+
+        newTableData.forEach(entry => {
+            let sprint = entry["sprint"];
+            let capacity = entry["capacity"];
+            let storyPoints = entry["storyPoints"];
+
+            if (!(sprint in lookUp)) {
+                lookUp[sprint] = {
+                    capacity: capacity,
+                    storyPoints: storyPoints
+                }
+            } else {
+                let currSprint = lookUp[sprint];
+                currSprint['capacity'] += capacity;
+                currSprint['storyPoints'] += storyPoints;
+            }
+        })
+
+        updateCharts(lookUp);
+    }
+
+    const updateTable = (dataToChange, edit) => {
+        let newTableData = [...tableData];
+        let index = newTableData.findIndex(item => item['id'] === dataToChange['id']);
+        let oldData = newTableData[index];
+
+        for (let key in edit) {
+            dataToChange[key] = edit[key];
+        }
+
+        dataToChange['velocity'] = dataToChange['storyPoints'] / (dataToChange['capacity'] / 8);
+
+        newTableData.splice(index, 1, { ...oldData, ...dataToChange })
+
+        setTableData(newTableData);
+        prepNewChartData(newTableData);
+    }
+
+    const updateChange = (changes) => {
+        if (changes.length === 0) {
+            return;
+        }
+
+        let dataToChange = changes[0]['key'];
+        let edit = changes[0]['data'];
+
+        updateTable(dataToChange, edit);
+    };
 
     // process CSV data
     const processData = dataString => {
@@ -367,6 +452,7 @@ function SprintVelocityChart() {
                 <Grouping autoExpandAll={true} />
                 <Editing
                     mode= 'cell'
+                    onChangesChange={updateChange}
                     allowUpdating={true}
                 />
 
