@@ -9,105 +9,11 @@ import DataGrid, {
     Selection, Summary
 } from "devextreme-react/data-grid";
 
-const COLUMNS = [
-    {
-        title: 'Sprint',
-        dataIndex: 'sprint',
-    },
-    {
-        title: 'Capacity',
-        dataIndex: 'capacity',
-        editable: true
-    },
-    {
-        title: 'Completed',
-        dataIndex: 'completed',
-        editable: true
-    },
-    {
-        title: 'Velocity',
-        dataIndex: 'velocity',
-    }
-];
-
 function SprintVelocityChart() {
     const [sprints, setSprints] = useState([]);
     const [barData, setBarData] = useState([]);
     const [lineData, setLineData] = useState([]);
     const [tableData, setTableData] = useState([]);
-
-    const saveNewBarData = (key, sprint, capacity, completed) => {
-        const newBarData = [...barData];
-        const timeIndex = newBarData.findIndex(item => key + '.1' === item.key);
-
-        const timeItem = newBarData[timeIndex];
-        const newTimeItem = {
-            key: key + '.1',
-            sprint: sprint,
-            value: capacity,
-            type: 'Capacity'
-        };
-
-        newBarData.splice(timeIndex, 1, { ...timeItem, ...newTimeItem });
-
-        const storyIndex = newBarData.findIndex(item => key + '.2' === item.key);
-
-        const storyItem = newBarData[storyIndex];
-        const newStoryItem = {
-            key: key + '.2',
-            sprint: sprint,
-            value: completed,
-            type: 'Completed Story Points'
-        };
-
-        newBarData.splice(storyIndex, 1, { ...storyItem, ...newStoryItem });
-
-        setBarData(newBarData);
-    }
-
-    const saveNewLineData = (key, sprint, velocity) => {
-        const newLineData = [...lineData];
-        const index = newLineData.findIndex(item => key === item.key);
-
-        const item = newLineData[index];
-        const newItem = {
-            key: key,
-            sprint: sprint,
-            velocity: velocity
-        };
-
-        newLineData.splice(index, 1, { ...item, ...newItem });
-
-        setLineData(newLineData);
-    }
-
-    const saveNewTableData = (key, sprint, capacity, completed, velocity) => {
-        const newTableData = [...tableData];
-        const index = newTableData.findIndex(item => key === item.key);
-
-        const item = newTableData[index];
-        const newItem = {
-            key: key,
-            sprint: sprint,
-            capacity: capacity,
-            completed: completed,
-            velocity: velocity
-        };
-
-        newTableData.splice(index, 1, {...item, ...newItem});
-
-        setTableData(newTableData);
-    }
-
-    const handleSave = ({ key, sprint, capacity, completed }) => {
-        let capacityParse = parseFloat(capacity);
-        let completedParse = parseFloat(completed);
-        let velocity = completedParse / (capacityParse / 8);
-
-        saveNewTableData(key, sprint, capacityParse, completedParse, velocity);
-        saveNewBarData(key, sprint, capacityParse, completedParse);
-        saveNewLineData(key, sprint, velocity);
-    }
 
     const populateData = (lookUp, sprints) => {
         let barData = [];
@@ -373,23 +279,6 @@ function SprintVelocityChart() {
         }
     }
 
-    COLUMNS.map(col => {
-        if (!col.editable) {
-            return col;
-        }
-
-        return {
-            ...col,
-            onCell: (record) => ({
-                record,
-                editable: col.editable,
-                dataIndex: col.dataIndex,
-                title: col.title,
-                handleSave: handleSave,
-            }),
-        };
-    });
-
     let config = {
         data: [barData, lineData],
         xField: 'sprint',
@@ -434,7 +323,7 @@ function SprintVelocityChart() {
     );
 
     const multiAxesComponent = () => (
-        <div className="chart" style={{ width: "100%", height: "70vh" }}>
+        <div className="chart" style={{ width: "50%", height: "70vh" }}>
             <DualAxes
                 {...config}
             />
@@ -442,7 +331,7 @@ function SprintVelocityChart() {
     );
 
     const dataGridComponent = () => (
-        <div className= 'dataGrid'>
+        <div className= 'dataGrid' style={{ width: '50%'}}>
             <DataGrid
                 id= 'gridContainer'
                 dataSource={tableData}
@@ -466,13 +355,13 @@ function SprintVelocityChart() {
                     <GroupItem
                         column= "capacity"
                         summaryType= "sum"
-                        displayFormat= "Total Capacity: {0}"
+                        displayFormat= "Capacity: {0}"
                         alignByColumn={true}
                     />
                     <GroupItem
                         column= "storyPoints"
                         summaryType= "sum"
-                        displayFormat= "Total Story Points: {0}"
+                        displayFormat= "Story Points: {0}"
                         alignByColumn={true}
                     />
                     <GroupItem
@@ -489,9 +378,9 @@ function SprintVelocityChart() {
     return (
         <div>
             {titleComponent()}
-            <div>
-                {multiAxesComponent()}
+            <div style={{ display: 'flex',  }}>
                 {dataGridComponent()}
+                {multiAxesComponent()}
             </div>
         </div>
     )
