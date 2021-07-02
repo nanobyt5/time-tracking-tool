@@ -11,12 +11,22 @@ import DataGrid, {
 
 import '../css/sprintVelocityChart.css';
 
+const HOURS_PER_DAY = 8;
+
+/**
+ * Creates the sprint velocity page. It has states: sprints, data for bar, line charts, and table.
+ * The data are initially empty arrays.
+ */
 function SprintVelocityChart() {
     const [sprints, setSprints] = useState([]);
     const [barData, setBarData] = useState([]);
     const [lineData, setLineData] = useState([]);
     const [tableData, setTableData] = useState([]);
 
+    /**
+     * Takes in a sorted array of the sprints and data from `getData` and use them to populate the
+     * data for the bar, line, and table to be shown.
+     */
     const populateData = (lookUp, sprints) => {
         let barData = [];
         let lineData = [];
@@ -33,7 +43,7 @@ function SprintVelocityChart() {
                 let currMember = currSprint[name];
                 let hours = currMember["hours"];
                 let storyPoints = currMember["storyPoints"];
-                let velocity = storyPoints / (hours / 8);
+                let velocity = storyPoints / (hours / HOURS_PER_DAY);
 
                 totalCapacity += hours;
                 totalStoryPoints += storyPoints;
@@ -48,7 +58,7 @@ function SprintVelocityChart() {
                 })
             }
 
-            let totalVelocity = totalStoryPoints / (totalCapacity / 8);
+            let totalVelocity = totalStoryPoints / (totalCapacity / HOURS_PER_DAY);
 
             barData.push(
                 {
@@ -76,7 +86,11 @@ function SprintVelocityChart() {
         setLineData(lineData);
     }
 
-    const getChartData = (list) => {
+    /**
+     * Takes in the data from the csv file and filters data from tech team with story point inputted.
+     * The data is condensed to sprints and users with the cumulated hours and story points.
+     */
+    const getData = (list) => {
         let lookUp = {};
         let sprints = [];
 
@@ -115,6 +129,9 @@ function SprintVelocityChart() {
         populateData(lookUp, sprints);
     }
 
+    /**
+     * Takes in the new data to populate the bar and line charts.
+     */
     const updateCharts = (lookUp) => {
         let newBarData = [];
         let newLineData = [];
@@ -123,7 +140,7 @@ function SprintVelocityChart() {
             let currSprint = lookUp[sprint];
             let capacity = currSprint['capacity'];
             let storyPoints = currSprint['storyPoints'];
-            let velocity = storyPoints / (capacity / 8);
+            let velocity = storyPoints / (capacity / HOURS_PER_DAY);
 
             newBarData.push(
                 {
@@ -147,6 +164,9 @@ function SprintVelocityChart() {
         setLineData(newLineData);
     }
 
+    /**
+     * Takes in new table data and mutate it to suitable data for the charts.
+     */
     const prepNewChartData = (newTableData) => {
         let lookUp = {};
 
@@ -170,6 +190,10 @@ function SprintVelocityChart() {
         updateCharts(lookUp);
     }
 
+    /**
+     * Makes use of the relevant data to be changed and the new data, to create the new table data,
+     * before updating the charts' data.
+     */
     const updateTable = (dataToChange, edit) => {
         let newTableData = [...tableData];
         let index = newTableData.findIndex(item => item['id'] === dataToChange['id']);
@@ -179,7 +203,7 @@ function SprintVelocityChart() {
             dataToChange[key] = edit[key];
         }
 
-        dataToChange['velocity'] = dataToChange['storyPoints'] / (dataToChange['capacity'] / 8);
+        dataToChange['velocity'] = dataToChange['storyPoints'] / (dataToChange['capacity'] / HOURS_PER_DAY);
 
         newTableData.splice(index, 1, { ...oldData, ...dataToChange })
 
@@ -187,6 +211,10 @@ function SprintVelocityChart() {
         prepNewChartData(newTableData);
     }
 
+    /**
+     * Takes in the changes made in the edit on the sprint velocity table to update charts and table
+     * data.
+     */
     const updateChange = (changes) => {
         if (changes.length === 0) {
             return;
@@ -198,7 +226,10 @@ function SprintVelocityChart() {
         updateTable(dataToChange, edit);
     };
 
-    // process CSV data
+    /**
+     * Converts the csv file to JSON format and used the data for the charts and table.
+     * credit: https://www.cluemediator.com/read-csv-file-in-react
+     */
     const processData = dataString => {
         const dataStringLines = dataString.split(/\r\n|\n/);
         const headers = dataStringLines[0].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -228,10 +259,13 @@ function SprintVelocityChart() {
             }
         }
 
-        getChartData(list);
+        getData(list);
     }
 
-    // handle file upload
+    /**
+     * Handles the csv file uploaded.
+     * credit: https://www.cluemediator.com/read-csv-file-in-react
+     */
     const handleFileUpload = e => {
         const file = e.target.files[0];
         if (!file) {
@@ -253,6 +287,9 @@ function SprintVelocityChart() {
         reader.readAsBinaryString(file);
     }
 
+    /**
+     * Calculates the total sprint velocity in each sprint.
+     */
     const calculateVelocity = (options) => {
         let process = options.summaryProcess;
         switch (process) {
@@ -276,11 +313,14 @@ function SprintVelocityChart() {
 
             case "finalize":
                 let finalStoryPoints = options.totalValue.storyPoints;
-                let finalCapacity = options.totalValue.capacity / 8;
+                let finalCapacity = options.totalValue.capacity / HOURS_PER_DAY;
                 options.totalValue = finalStoryPoints / finalCapacity
         }
     }
 
+    /**
+     * Config used for bar and line charts.
+     */
     let config = {
         data: [barData, lineData],
         xField: 'sprint',
@@ -353,7 +393,7 @@ function SprintVelocityChart() {
                 <Column dataField= 'name' />
                 <Column dataField= 'capacity' caption= "Capacity (hrs)"/>
                 <Column dataField= 'storyPoints' caption= 'Story Points' />
-                <Column dataField= 'velocity (SP / day)' />
+                <Column dataField= 'velocity' caption= 'Velocity (SP / day)' />
 
                 <Summary calculateCustomSummary={calculateVelocity}>
                     <GroupItem

@@ -11,12 +11,19 @@ const CHART_TYPES = [
 
 const INITIAL_CHART_TYPE = "donut";
 
+/**
+ * Creates the time chart for the time per activity page. It has the state: chartType. chartType has
+ * the initial state of donut.
+ */
 function TimeChart(props) {
     const db = props.data;
     const groupBy = props.groupBy;
     const [chartType, setChartType] = useState(INITIAL_CHART_TYPE);
-
     let data = [];
+
+    /**
+     * Gets the chart data from the db to be used for the time per activity charts.
+     */
     const getChartData = () => {
         if (!groupBy) {
             return;
@@ -46,13 +53,18 @@ function TimeChart(props) {
             });
         })
     }
-
     getChartData();
 
+    /**
+     * Capitalises the first letter of the word given.
+     */
     const capitalize = (word) => {
         return word.slice(0, 1).toUpperCase() + word.slice(1, word.length)
     };
 
+    /**
+     * Gets the config for the bar chart.
+     */
     const getBarConfig = () => (
         {
             data: data,
@@ -78,6 +90,9 @@ function TimeChart(props) {
         }
     );
 
+    /**
+     * Gets the config for the donut chart.
+     */
     const getDonutConfig = () => (
         {
             appendPadding: 10,
@@ -117,6 +132,16 @@ function TimeChart(props) {
         }
     )
 
+    /**
+     * Changes the chart type between donut and bar chart.
+     */
+    const changeChartType = (e) => {
+        setChartType(e.target.value);
+    };
+
+    /**
+     * Gets chart components based on the group by state.
+     */
     const getChart = () => {
         switch (chartType) {
             case "bar":
@@ -136,10 +161,6 @@ function TimeChart(props) {
             default:
                 throw new Error();
         }
-    };
-
-    const changeChartType = (e) => {
-        setChartType(e.target.value);
     };
 
     const radioComponent = (
