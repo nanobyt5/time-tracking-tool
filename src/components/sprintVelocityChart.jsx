@@ -9,6 +9,8 @@ import DataGrid, {
     Selection, Summary
 } from "devextreme-react/data-grid";
 
+import '../css/sprintVelocityChart.css';
+
 function SprintVelocityChart() {
     const [sprints, setSprints] = useState([]);
     const [barData, setBarData] = useState([]);
@@ -308,22 +310,24 @@ function SprintVelocityChart() {
     };
 
     const UploadFileComponent = () => (
-        <input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            onChange={handleFileUpload}
-        />
+        <div className= 'uploadFileComponent'>
+            <input
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={handleFileUpload}
+            />
+        </div>
     );
 
     const titleComponent = () => (
-      <div style={{ margin:"5px", display:"flex", justifyContent:"space-between", width:"700px" }}>
+      <div className= 'titleComponent' >
           <h2>Sprint Velocity</h2>
           {UploadFileComponent()}
       </div>
     );
 
     const multiAxesComponent = () => (
-        <div className="chart" style={{ width: "50%", height: "70vh" }}>
+        <div className="chart">
             <DualAxes
                 {...config}
             />
@@ -331,7 +335,7 @@ function SprintVelocityChart() {
     );
 
     const dataGridComponent = () => (
-        <div className= 'dataGrid' style={{ width: '50%'}}>
+        <div className= 'dataGrid'>
             <DataGrid
                 id= 'gridContainer'
                 dataSource={tableData}
@@ -378,7 +382,7 @@ function SprintVelocityChart() {
     return (
         <div>
             {titleComponent()}
-            <div style={{ display: 'flex',  }}>
+            <div className= "tableAndChart">
                 {dataGridComponent()}
                 {multiAxesComponent()}
             </div>
