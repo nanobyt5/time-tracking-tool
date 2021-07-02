@@ -351,9 +351,9 @@ function SprintVelocityChart() {
 
                 <Column dataField= 'sprint' caption= 'Sprint' groupIndex={0} />
                 <Column dataField= 'name' />
-                <Column dataField= 'capacity' />
-                <Column dataField= 'storyPoints' caption= 'Completed Story Points' />
-                <Column dataField= 'velocity' />
+                <Column dataField= 'capacity' caption= "Capacity (hrs)"/>
+                <Column dataField= 'storyPoints' caption= 'Story Points' />
+                <Column dataField= 'velocity (SP / day)' />
 
                 <Summary calculateCustomSummary={calculateVelocity}>
                     <GroupItem
