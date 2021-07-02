@@ -5,7 +5,7 @@ import DataGrid, {
   Column,
   Export,
   Grouping,
-  GroupItem,
+  GroupItem, GroupPanel,
   Scrolling,
   Selection,
   Summary, TotalItem,
@@ -363,8 +363,6 @@ function Time() {
     >
       <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
       <Selection mode={"single"} />
-
-      <Scrolling mode={"infinite"} />
 
       {columns.map(({ toGroup, dataField, dataType }) =>
         toGroup ? (
