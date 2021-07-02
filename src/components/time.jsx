@@ -5,8 +5,7 @@ import DataGrid, {
   Column,
   Export,
   Grouping,
-  GroupItem, GroupPanel,
-  Scrolling,
+  GroupItem,
   Selection,
   Summary, TotalItem,
 } from "devextreme-react/data-grid";
