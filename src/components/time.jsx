@@ -27,6 +27,11 @@ const COLUMNS = [
     toSort: false,
   },
   {
+    dataField: "sprint",
+    dataType: "string",
+    toSort: false,
+  },
+  {
     dataField: "team",
     dataType: "string",
     toSort: false,
@@ -59,6 +64,7 @@ const GROUP_METHODS = [
   { value: "tags", label: "Tags" },
   { value: "team", label: "Team" },
   { value: "teamMember", label: "User" },
+  { value: "sprint", label: "Sprint" }
 ];
 
 const INITIAL_GROUP_BY = "activity";
@@ -188,6 +194,7 @@ function Time() {
         tempData.push({
           id: i++,
           date: new Date(entry["Date"]),
+          sprint: entry["Sprint Cycle"],
           team: entry["Team"],
           teamMember: entry["Team Member"],
           activity: entry["Activity"],
