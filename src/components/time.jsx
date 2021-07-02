@@ -8,7 +8,7 @@ import DataGrid, {
   GroupItem,
   Scrolling,
   Selection,
-  Summary,
+  Summary, TotalItem,
 } from "devextreme-react/data-grid";
 import * as XLSX from "xlsx";
 
@@ -389,6 +389,11 @@ function Time() {
           summaryType="sum"
           displayFormat="Total Hours: {0}"
           showInGroupFooter={true}
+        />
+        <TotalItem
+          column="hours"
+          summaryType="sum"
+          displayFormat="Total: {0}"
         />
       </Summary>
 
