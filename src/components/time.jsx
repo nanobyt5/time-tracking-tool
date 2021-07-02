@@ -6,9 +6,8 @@ import DataGrid, {
   Export,
   Grouping,
   GroupItem,
-  Scrolling,
   Selection,
-  Summary,
+  Summary, TotalItem,
 } from "devextreme-react/data-grid";
 import * as XLSX from "xlsx";
 
@@ -24,6 +23,11 @@ const COLUMNS = [
   {
     dataField: "date",
     dataType: "date",
+    toSort: false,
+  },
+  {
+    dataField: "sprint",
+    dataType: "string",
     toSort: false,
   },
   {
@@ -59,6 +63,7 @@ const GROUP_METHODS = [
   { value: "tags", label: "Tags" },
   { value: "team", label: "Team" },
   { value: "teamMember", label: "User" },
+  { value: "sprint", label: "Sprint" }
 ];
 
 const INITIAL_GROUP_BY = "activity";
@@ -188,6 +193,7 @@ function Time() {
         tempData.push({
           id: i++,
           date: new Date(entry["Date"]),
+          sprint: entry["Sprint Cycle"],
           team: entry["Team"],
           teamMember: entry["Team Member"],
           activity: entry["Activity"],
@@ -357,8 +363,6 @@ function Time() {
       <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
       <Selection mode={"single"} />
 
-      <Scrolling mode={"infinite"} />
-
       {columns.map(({ toGroup, dataField, dataType }) =>
         toGroup ? (
           <Column
@@ -382,6 +386,11 @@ function Time() {
           summaryType="sum"
           displayFormat="Total Hours: {0}"
           showInGroupFooter={true}
+        />
+        <TotalItem
+          column="hours"
+          summaryType="sum"
+          displayFormat="Total: {0}"
         />
       </Summary>
 
