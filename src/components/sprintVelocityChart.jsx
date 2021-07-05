@@ -1,275 +1,96 @@
-import React, {useContext, useEffect, useRef, useState} from "react";
+import React, {useState} from "react";
 import {DualAxes} from "@ant-design/charts";
-import {Form, Input, Table} from "antd";
 import * as XLSX from "xlsx";
+import DataGrid, {
+    Column,
+    Editing,
+    Grouping,
+    GroupItem,
+    Selection, Summary
+} from "devextreme-react/data-grid";
 
-const EditableContext = React.createContext(null);
+import '../css/sprintVelocityChart.css';
 
-const EditableRow = ({ index, ...props }) => {
-    const [form] = Form.useForm();
+const HOURS_PER_DAY = 8;
 
-    return (
-        <Form form={form} component={false}>
-            <EditableContext.Provider value={form}>
-                <tr {...props} />
-            </EditableContext.Provider>
-        </Form>
-    )
-};
-
-const EditableCell = ({
-    title,
-    editable,
-    children,
-    dataIndex,
-    record,
-    handleSave,
-    ...restProps
-}) => {
-    const [editing, setEditing] = useState(false);
-    const inputRef = useRef(null);
-    const form = useContext(EditableContext);
-
-    useEffect(() => {
-        if (editing) {
-            inputRef.current.focus();
-        }
-    }, [editing]);
-
-    const toggleEdit = () => {
-        setEditing(!editing);
-        form.setFieldsValue({
-            [dataIndex]: record[dataIndex]
-        })
-    }
-
-    const save = async () => {
-        try {
-            const values = await form.validateFields();
-            toggleEdit();
-            handleSave({ ...record, ...values });
-        } catch (errInfo) {
-            console.log('Save failed:', errInfo);
-        }
-    }
-
-    let childNode = children;
-
-    if (editable) {
-        childNode = editing ? (
-            <Form.Item
-                style={{
-                    margin: 0,
-                }}
-                name={dataIndex}
-                rules={[
-                    {
-                        required: true,
-                        message: `${title} is required.`,
-                    },
-                ]}
-            >
-                <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-            </Form.Item>
-        ) : (
-            <div
-                className="editable-cell-value-wrap"
-                style={{
-                    paddingRight: 24,
-                }}
-                onClick={toggleEdit}
-            >
-                {children}
-            </div>
-        );
-    }
-
-    return <td {...restProps}>{childNode}</td>
-}
-
-const COLUMNS = [
-    {
-        title: 'Sprint',
-        dataIndex: 'sprint',
-    },
-    {
-        title: 'Capacity',
-        dataIndex: 'capacity',
-        editable: true
-    },
-    {
-        title: 'Completed',
-        dataIndex: 'completed',
-        editable: true
-    },
-    {
-        title: 'Velocity',
-        dataIndex: 'velocity',
-    }
-];
-
+/**
+ * Creates the sprint velocity page. It has states: sprints, data for bar, line charts, and table.
+ * The data are initially empty arrays.
+ */
 function SprintVelocityChart() {
+    const [sprints, setSprints] = useState([]);
     const [barData, setBarData] = useState([]);
     const [lineData, setLineData] = useState([]);
     const [tableData, setTableData] = useState([]);
-    const [maxValue, setMaxValue] = useState(0);
-    const [maxVelocity, setMaxVelocity] = useState(0);
 
-    const saveNewBarData = (key, sprint, capacity, completed) => {
-        const newBarData = [...barData];
-        const timeIndex = newBarData.findIndex(item => key + '.1' === item.key);
-
-        const timeItem = newBarData[timeIndex];
-        const newTimeItem = {
-            key: key + '.1',
-            sprint: sprint,
-            value: capacity,
-            type: 'Time Spent'
-        };
-
-        newBarData.splice(timeIndex, 1, { ...timeItem, ...newTimeItem });
-
-        const storyIndex = newBarData.findIndex(item => key + '.2' === item.key);
-
-        const storyItem = newBarData[storyIndex];
-        const newStoryItem = {
-            key: key + '.2',
-            sprint: sprint,
-            value: completed,
-            type: 'Total Story Points'
-        };
-
-        newBarData.splice(storyIndex, 1, { ...storyItem, ...newStoryItem });
-
-        setBarData(newBarData);
-    }
-
-    const saveNewLineData = (key, sprint, velocity) => {
-        const newLineData = [...lineData];
-        const index = newLineData.findIndex(item => key === item.key);
-
-        const item = newLineData[index];
-        const newItem = {
-            key: key,
-            sprint: sprint,
-            velocity: velocity
-        };
-
-        newLineData.splice(index, 1, { ...item, ...newItem });
-
-        setLineData(newLineData);
-    }
-
-    const saveNewTableData = (key, sprint, capacity, completed, velocity) => {
-        const newTableData = [...tableData];
-        const index = newTableData.findIndex(item => key === item.key);
-
-        const item = newTableData[index];
-        const newItem = {
-            key: key,
-            sprint: sprint,
-            capacity: capacity,
-            completed: completed,
-            velocity: velocity
-        };
-
-        newTableData.splice(index, 1, {...item, ...newItem});
-
-        setTableData(newTableData);
-    }
-
-    const handleSave = ({ key, sprint, capacity, completed }) => {
-        let capacityParse = parseFloat(capacity);
-        let completedParse = parseFloat(completed);
-        let velocity = completedParse / (capacityParse / 8);
-        let tempMaxValue = 0;
-
-        if (tempMaxValue < capacityParse) {
-            tempMaxValue = capacityParse;
-        }
-
-        if (tempMaxValue < completedParse) {
-            tempMaxValue = completedParse;
-        }
-
-        if (maxValue < tempMaxValue) {
-            setMaxValue(tempMaxValue);
-        }
-
-        if (maxVelocity < velocity) {
-            setMaxVelocity(velocity);
-        }
-
-        saveNewTableData(key, sprint, capacityParse, completedParse, velocity);
-        saveNewBarData(key, sprint, capacityParse, completedParse);
-        saveNewLineData(key, sprint, velocity);
-    }
-
+    /**
+     * Takes in a sorted array of the sprints and data from `getData` and use them to populate the
+     * data for the bar, line, and table to be shown.
+     */
     const populateData = (lookUp, sprints) => {
         let barData = [];
         let lineData = [];
         let tableData = [];
-        let tempMaxVal = 0;
-        let tempMaxVel = 0;
         let i = 0;
 
         sprints.forEach(sprint => {
             let currSprint = lookUp[sprint];
-            let hours = currSprint["hours"];
-            let storyPoints = currSprint["storyPoints"];
-            let velocity = storyPoints / (hours / 8);
+            let totalCapacity = 0;
+            let totalStoryPoints = 0;
+            let j = 0;
 
-            if (tempMaxVal < hours) {
-                tempMaxVal = hours;
+            for (let name in currSprint) {
+                let currMember = currSprint[name];
+                let hours = currMember["hours"];
+                let storyPoints = currMember["storyPoints"];
+                let velocity = storyPoints / (hours / HOURS_PER_DAY);
+
+                totalCapacity += hours;
+                totalStoryPoints += storyPoints;
+
+                tableData.push({
+                    id: `${i}.${j++}`,
+                    name: name,
+                    sprint: sprint,
+                    capacity: hours,
+                    storyPoints: storyPoints,
+                    velocity: velocity
+                })
             }
 
-            if (tempMaxVal < storyPoints) {
-                tempMaxVal = storyPoints;
-            }
-
-            if (tempMaxVel < velocity) {
-                tempMaxVel = velocity;
-            }
+            let totalVelocity = totalStoryPoints / (totalCapacity / HOURS_PER_DAY);
 
             barData.push(
                 {
                     key: `${i}.1`,
                     sprint: sprint,
-                    value: hours,
-                    type: 'Time Spent'
+                    value: totalCapacity,
+                    type: 'Capacity'
                 },
                 {
                     key: `${i}.2`,
                     sprint: sprint,
-                    value: storyPoints,
-                    type: 'Total Story Points'
+                    value: totalStoryPoints,
+                    type: 'Completed Story Points'
                 })
 
             lineData.push({
-                key: i,
+                key: i++,
                 sprint: sprint,
-                velocity: velocity
+                velocity: totalVelocity
             })
-
-            tableData.push(
-                {
-                    key: i++,
-                    sprint: sprint,
-                    capacity: hours,
-                    completed: storyPoints,
-                    velocity: velocity
-                }
-            )
         })
 
-        setMaxVelocity(tempMaxVel);
-        setMaxValue(tempMaxVal);
         setTableData(tableData);
         setBarData(barData);
         setLineData(lineData);
     }
 
-    const getChartData = (list) => {
+    /**
+     * Takes in the data from the csv file and filters data from tech team with story point inputted.
+     * The data is condensed to sprints and users with the cumulated hours and story points.
+     */
+    const getData = (list) => {
         let lookUp = {};
         let sprints = [];
 
@@ -278,27 +99,137 @@ function SprintVelocityChart() {
                 let sprint = entry["Sprint Cycle"];
                 let hours = parseFloat(entry["Hours"]);
                 let storyPoints = parseFloat(entry["Story Points Completed"]);
+                let teamMember = entry["Team Member"];
 
                 if (!(sprint in lookUp)) {
-                    lookUp[sprint] = {
+                    lookUp[sprint] = {};
+                    lookUp[sprint][teamMember] = {
                         hours: hours,
                         storyPoints: storyPoints
                     };
                     sprints.push(sprint);
                 } else {
-                    let currEntry = lookUp[sprint];
-                    currEntry["hours"] += hours;
-                    currEntry["storyPoints"] += storyPoints;
-                    lookUp[sprint] = currEntry;
+                    let currSprint = lookUp[sprint];
+                    if (!(teamMember in currSprint)) {
+                        currSprint[teamMember] = {
+                            hours: hours,
+                            storyPoints: storyPoints
+                        }
+                    } else {
+                        let currMember = currSprint[teamMember];
+                        currMember["hours"] += hours;
+                        currMember["storyPoints"] += storyPoints;
+                    }
                 }
             })
 
         sprints.sort();
+        setSprints(sprints);
 
         populateData(lookUp, sprints);
     }
 
-    // process CSV data
+    /**
+     * Takes in the new data to populate the bar and line charts.
+     */
+    const updateCharts = (lookUp) => {
+        let newBarData = [];
+        let newLineData = [];
+
+        sprints.forEach(sprint => {
+            let currSprint = lookUp[sprint];
+            let capacity = currSprint['capacity'];
+            let storyPoints = currSprint['storyPoints'];
+            let velocity = storyPoints / (capacity / HOURS_PER_DAY);
+
+            newBarData.push(
+                {
+                    sprint: sprint,
+                    value: capacity,
+                    type: 'Capacity'
+                },
+                {
+                    sprint: sprint,
+                    value: storyPoints,
+                    type: 'Completed Story Points'
+                })
+
+            newLineData.push({
+                sprint: sprint,
+                velocity: velocity
+            })
+        })
+
+        setBarData(newBarData);
+        setLineData(newLineData);
+    }
+
+    /**
+     * Takes in new table data and mutate it to suitable data for the charts.
+     */
+    const prepNewChartData = (newTableData) => {
+        let lookUp = {};
+
+        newTableData.forEach(entry => {
+            let sprint = entry["sprint"];
+            let capacity = entry["capacity"];
+            let storyPoints = entry["storyPoints"];
+
+            if (!(sprint in lookUp)) {
+                lookUp[sprint] = {
+                    capacity: capacity,
+                    storyPoints: storyPoints
+                }
+            } else {
+                let currSprint = lookUp[sprint];
+                currSprint['capacity'] += capacity;
+                currSprint['storyPoints'] += storyPoints;
+            }
+        })
+
+        updateCharts(lookUp);
+    }
+
+    /**
+     * Makes use of the relevant data to be changed and the new data, to create the new table data,
+     * before updating the charts' data.
+     */
+    const updateTable = (dataToChange, edit) => {
+        let newTableData = [...tableData];
+        let index = newTableData.findIndex(item => item['id'] === dataToChange['id']);
+        let oldData = newTableData[index];
+
+        for (let key in edit) {
+            dataToChange[key] = edit[key];
+        }
+
+        dataToChange['velocity'] = dataToChange['storyPoints'] / (dataToChange['capacity'] / HOURS_PER_DAY);
+
+        newTableData.splice(index, 1, { ...oldData, ...dataToChange })
+
+        setTableData(newTableData);
+        prepNewChartData(newTableData);
+    }
+
+    /**
+     * Takes in the changes made in the edit on the sprint velocity table to update charts and table
+     * data.
+     */
+    const updateChange = (changes) => {
+        if (changes.length === 0) {
+            return;
+        }
+
+        let dataToChange = changes[0]['key'];
+        let edit = changes[0]['data'];
+
+        updateTable(dataToChange, edit);
+    };
+
+    /**
+     * Converts the csv file to JSON format and used the data for the charts and table.
+     * credit: https://www.cluemediator.com/read-csv-file-in-react
+     */
     const processData = dataString => {
         const dataStringLines = dataString.split(/\r\n|\n/);
         const headers = dataStringLines[0].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -328,12 +259,19 @@ function SprintVelocityChart() {
             }
         }
 
-        getChartData(list);
+        getData(list);
     }
 
-    // handle file upload
+    /**
+     * Handles the csv file uploaded.
+     * credit: https://www.cluemediator.com/read-csv-file-in-react
+     */
     const handleFileUpload = e => {
         const file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = (evt) => {
             /* Parse data */
@@ -349,42 +287,49 @@ function SprintVelocityChart() {
         reader.readAsBinaryString(file);
     }
 
-    const components = {
-        body: {
-            row: EditableRow,
-            cell: EditableCell,
-        },
-    };
+    /**
+     * Calculates the total sprint velocity in each sprint.
+     */
+    const calculateVelocity = (options) => {
+        let process = options.summaryProcess;
+        switch (process) {
+            case "start":
+                options.totalValue = {
+                    capacity: 0,
+                    storyPoints: 0,
+                };
+                break;
 
-    const columns = COLUMNS.map(col => {
-        if (!col.editable) {
-            return col;
+            case "calculate":
+                let totalCapacity = options.totalValue.capacity;
+                let currCapacity = options.value.capacity;
+                let totalStoryPoints = options.totalValue.storyPoints;
+                let currStoryPoints = options.value.storyPoints;
+                options.totalValue = {
+                    capacity: totalCapacity + currCapacity,
+                    storyPoints: totalStoryPoints + currStoryPoints
+                }
+                break;
+
+            case "finalize":
+                let finalStoryPoints = options.totalValue.storyPoints;
+                let finalCapacity = options.totalValue.capacity / HOURS_PER_DAY;
+                options.totalValue = finalStoryPoints / finalCapacity
         }
+    }
 
-        return {
-            ...col,
-            onCell: (record) => ({
-                record,
-                editable: col.editable,
-                dataIndex: col.dataIndex,
-                title: col.title,
-                handleSave: handleSave,
-            }),
-        };
-    })
-
+    /**
+     * Config used for bar and line charts.
+     */
     let config = {
         data: [barData, lineData],
         xField: 'sprint',
         yField: ['value', 'velocity'],
         yAxis: {
-            value: {
-                max: maxValue + 1,
-            },
-            velocity: {
-                max: maxVelocity + 1,
-                min: 0
-            }
+          velocity: {
+              min: 0,
+              max: 5
+          }
         },
         geometryOptions: [
             {
@@ -397,49 +342,88 @@ function SprintVelocityChart() {
                 lineStyle: { lineWidth: 2 },
             },
         ],
+        legend: {
+            layout: 'horizontal',
+            position: 'bottom'
+        },
+        height: 600,
     };
 
     const UploadFileComponent = () => (
-        <input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            onChange={handleFileUpload}
-        />
+        <div className= 'uploadFileComponent'>
+            <input
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={handleFileUpload}
+            />
+        </div>
     );
 
     const titleComponent = () => (
-      <div style={{ margin:"5px", display:"flex", justifyContent:"space-between", width:"700px" }}>
+      <div className= 'titleComponent' >
           <h2>Sprint Velocity</h2>
           {UploadFileComponent()}
       </div>
     );
 
-
-    const tableComponent = () => (
-        <div style={{ width:"39%", padding:"11px" }} >
-            <Table
-                components={components}
-                rowClassName={() => 'editable-row'}
-                bordered
-                dataSource={tableData}
-                columns={columns}
-            />
-        </div>
-    );
-
     const multiAxesComponent = () => (
-        <div className="chart" style={{ width:"60%", height:"60vh" }}>
+        <div className="chart">
             <DualAxes
                 {...config}
             />
         </div>
     );
 
+    const dataGridComponent = () => (
+        <div className= 'dataGrid'>
+            <DataGrid
+                id= 'gridContainer'
+                dataSource={tableData}
+                showBorders={true}
+            >
+                <Selection mode='single' />
+                <Grouping autoExpandAll={true} />
+                <Editing
+                    mode= 'cell'
+                    onChangesChange={updateChange}
+                    allowUpdating={true}
+                />
+
+                <Column dataField= 'sprint' caption= 'Sprint' groupIndex={0} />
+                <Column dataField= 'name' />
+                <Column dataField= 'capacity' caption= "Capacity (hrs)"/>
+                <Column dataField= 'storyPoints' caption= 'Story Points' />
+                <Column dataField= 'velocity' caption= 'Velocity (SP / day)' />
+
+                <Summary calculateCustomSummary={calculateVelocity}>
+                    <GroupItem
+                        column= "capacity"
+                        summaryType= "sum"
+                        displayFormat= "Capacity: {0}"
+                        alignByColumn={true}
+                    />
+                    <GroupItem
+                        column= "storyPoints"
+                        summaryType= "sum"
+                        displayFormat= "Story Points: {0}"
+                        alignByColumn={true}
+                    />
+                    <GroupItem
+                        summaryType= "custom"
+                        displayFormat= "Sprint Velocity: {0}"
+                        alignByColumn={true}
+                        showInColumn= 'velocity'
+                    />
+                </Summary>
+            </DataGrid>
+        </div>
+    )
+
     return (
         <div>
             {titleComponent()}
-            <div style={{ display:"flex", justifyContent:"space-evenly", margin:"5px" }}>
-                {tableComponent()}
+            <div className= "tableAndChart">
+                {dataGridComponent()}
                 {multiAxesComponent()}
             </div>
         </div>
