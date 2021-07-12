@@ -1,0 +1,26 @@
+.chartTypeForm {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 5px;
+}
+
+.timeChart {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 80vh;
+    margin: 5px;
+}
+
+@media screen and (max-width: 1500px){
+    .timeChart {
+        height: 70vh;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .timeChart {
+        height: 50vh;
+    }
+}

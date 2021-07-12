@@ -2,6 +2,8 @@ import React, {useState} from "react";
 import {Column, Pie} from "@ant-design/charts";
 import {Radio} from "antd";
 
+import '../css/timeChart.css';
+
 const CHART_TYPES = [
     { value: "bar", label: "Bar Chart" },
     { value: "donut", label: "Doughnut Chart" },
@@ -9,12 +11,19 @@ const CHART_TYPES = [
 
 const INITIAL_CHART_TYPE = "donut";
 
+/**
+ * Creates the time chart for the time per activity page. It has the state: chartType. chartType has
+ * the initial state of donut.
+ */
 function TimeChart(props) {
     const db = props.data;
     const groupBy = props.groupBy;
     const [chartType, setChartType] = useState(INITIAL_CHART_TYPE);
-
     let data = [];
+
+    /**
+     * Gets the chart data from the db to be used for the time per activity charts.
+     */
     const getChartData = () => {
         if (!groupBy) {
             return;
@@ -44,13 +53,18 @@ function TimeChart(props) {
             });
         })
     }
-
     getChartData();
 
+    /**
+     * Capitalises the first letter of the word given.
+     */
     const capitalize = (word) => {
         return word.slice(0, 1).toUpperCase() + word.slice(1, word.length)
     };
 
+    /**
+     * Gets the config for the bar chart.
+     */
     const getBarConfig = () => (
         {
             data: data,
@@ -76,6 +90,9 @@ function TimeChart(props) {
         }
     );
 
+    /**
+     * Gets the config for the donut chart.
+     */
     const getDonutConfig = () => (
         {
             appendPadding: 10,
@@ -115,6 +132,16 @@ function TimeChart(props) {
         }
     )
 
+    /**
+     * Changes the chart type between donut and bar chart.
+     */
+    const changeChartType = (e) => {
+        setChartType(e.target.value);
+    };
+
+    /**
+     * Gets chart components based on the group by state.
+     */
     const getChart = () => {
         switch (chartType) {
             case "bar":
@@ -136,17 +163,13 @@ function TimeChart(props) {
         }
     };
 
-    const changeChartType = (e) => {
-        setChartType(e.target.value);
-    };
-
     const radioComponent = (
         className,
         selectName,
         radios,
         onChange
     ) => (
-        <div className={className} style={{ width: "100%", display: 'flex', justifyContent: 'center', margin: 5 }}>
+        <div className={className}>
             <Radio.Group value={selectName} onChange={onChange}>
                 {radios.map((radio) => (
                     <Radio value={radio["value"]}>{radio["label"]}</Radio>
@@ -157,13 +180,7 @@ function TimeChart(props) {
 
     return(
         <div>
-            <div className="chart" style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                height: "80vh",
-                margin: "5px"
-            }}>
+            <div className="timeChart">
                 {radioComponent(
                     "chartTypeForm",
                     chartType,
