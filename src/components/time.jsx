@@ -70,7 +70,7 @@ const INITIAL_GROUP_BY = "activity";
 
 /**
  * Creates the time spent per activity page. It has states: db, minDate, maxDate, startDate, endDate,
- * team, teamMember, activity, tags, groupBy, columns.
+ * team, member, activity, tags, groupBy, columns.
  */
 function Time() {
   const [db, setDb] = useState([]);
@@ -171,7 +171,7 @@ function Time() {
   const isEntryValid = (entry) => {
     const date = new Date(entry["Date"]);
     const entryTeam = entry["Team"];
-    const user = entry["Team Member"];
+    const user = entry["Member"];
     const entryActivity = entry["Activity"];
     const entryTags = entry["Tags"].split(",");
 
@@ -211,7 +211,7 @@ function Time() {
           date: new Date(entry["Date"]),
           sprint: entry["Sprint Cycle"],
           team: entry["Team"],
-          teamMember: entry["Team Member"],
+          member: entry["Member"],
           activity: entry["Activity"],
           hours: entry["Hours"],
           tags: entry["Tags"],
@@ -322,7 +322,7 @@ function Time() {
   }
 
   const allTeams = getAllFromDb("Team");
-  const allTeamMembers = getAllFromDb("Team Member");
+  const allTeamMembers = getAllFromDb("Member");
   const allActivities = getAllFromDb("Activity");
   const allTags = getAllTags();
 
@@ -428,12 +428,14 @@ function Time() {
           column="hours"
           summaryType="sum"
           displayFormat="Total Hours: {0}"
+          valueFormat= "#.###"
           showInGroupFooter={true}
         />
         <TotalItem
           column="hours"
           summaryType="sum"
           displayFormat="Total: {0}"
+          valueFormat= "#.###"
         />
       </Summary>
 
@@ -463,7 +465,7 @@ function Time() {
             changeTeam
         )}
         {selectMultiComponent(
-            "Team Member:",
+            "Member:",
             teamMember,
             allTeamMembers,
             changeTeamMembers

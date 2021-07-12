@@ -93,8 +93,8 @@ class S3File extends Component {
   async exportFromS3(params) {
     s3.getObject(params, function (err, data) {
       if (data) {
-        let content = data.Body.toString('utf-8');
-        console.log("content", processData(content));
+        // let content = data.Body.toString('utf-8');
+        // console.log("content", processData(content));
         var filename = params.Key;
         var blob = new Blob([data.Body], {
           type: "",

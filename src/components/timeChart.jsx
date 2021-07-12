@@ -37,10 +37,10 @@ function TimeChart(props) {
             let hours = entry["hours"];
 
             if (!(label in lookUp)) {
-                lookUp[label] = parseInt(hours);
+                lookUp[label] = parseFloat(hours);
                 labels.push(label);
             } else {
-                lookUp[label] += parseInt(hours);
+                lookUp[label] += parseFloat(hours);
             }
         })
 
