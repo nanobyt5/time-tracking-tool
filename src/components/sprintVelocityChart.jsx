@@ -1,5 +1,7 @@
 import React, {useState} from "react";
+import { observer } from "mobx-react";
 import {DualAxes} from "@ant-design/charts";
+import ExcelStore from "../stores/excelStore";
 import * as XLSX from "xlsx";
 import DataGrid, {
     Column,
@@ -267,7 +269,8 @@ function SprintVelocityChart() {
      * credit: https://www.cluemediator.com/read-csv-file-in-react
      */
     const handleFileUpload = e => {
-        const file = e.target.files[0];
+        const file = ExcelStore.excelFiles[0]; // ADD EXCEL FILE HERE ///////////////////
+        //const file = e.target.files[0];
         if (!file) {
             return;
         }
@@ -362,7 +365,9 @@ function SprintVelocityChart() {
     const titleComponent = () => (
       <div className= 'titleComponent' >
           <h2>Sprint Velocity</h2>
-          {UploadFileComponent()}
+          {/* {UploadFileComponent()} */}
+      {/* {///////////////////////////////////////////////////////////////////////////} */}
+      {handleFileUpload()}
       </div>
     );
 
@@ -430,4 +435,4 @@ function SprintVelocityChart() {
     )
 }
 
-export default SprintVelocityChart;
+export default observer(SprintVelocityChart);

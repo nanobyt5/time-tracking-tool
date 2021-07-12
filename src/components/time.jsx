@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from "react";
-import {DatePicker, Select} from "antd";
-import {FormLabel, Grid} from "@material-ui/core";
+import React, { useEffect, useState } from "react";
+import { observer } from "mobx-react";
+import { DatePicker, Select } from "antd";
+import { FormLabel, Grid } from "@material-ui/core";
 import DataGrid, {
   Column,
   Export,
@@ -9,6 +10,8 @@ import DataGrid, {
   Selection,
   Summary, TotalItem,
 } from "devextreme-react/data-grid";
+
+import ExcelStore from "../stores/excelStore";
 import * as XLSX from "xlsx";
 
 import '../css/time.css';
@@ -145,7 +148,7 @@ function Time() {
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
+    const file = ExcelStore.excelFiles[0];
     if (!file) {
       return;
     }
@@ -341,6 +344,7 @@ function Time() {
     options,
     onChange
   ) => (
+
     <div className='selectMultiComponent'>
       <FormLabel style={{ fontWeight: 'bold' }}>{labelText}</FormLabel>
       <Select
@@ -502,4 +506,4 @@ function Time() {
   );
 }
 
-export default Time;
+export default observer(Time);
