@@ -65,7 +65,7 @@ function TimeChart(props) {
     /**
      * Gets the config for the bar chart.
      */
-    const getBarConfig = () => (
+    const getColConfig = () => (
         {
             data: data,
             xField: 'type',
@@ -80,7 +80,8 @@ function TimeChart(props) {
             xAxis: {
                 label: {
                     autoHide: true,
-                    autoRotate: false
+                    autoRotate: false,
+                    autoEllipsis: true
                 }
             },
             meta: {
@@ -147,7 +148,7 @@ function TimeChart(props) {
             case "bar":
                 return (
                     <Column
-                        {...getBarConfig()}
+                        {...getColConfig()}
                     />
                 )
 

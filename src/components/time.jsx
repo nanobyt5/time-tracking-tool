@@ -36,13 +36,13 @@ const COLUMNS = [
     toSort: false,
   },
   {
-    dataField: "teamMember",
+    dataField: "member",
     dataType: "string",
     toSort: false,
   },
   {
     dataField: "activity",
-    dataType: "number",
+    dataType: "string",
     toSort: false,
   },
   {
@@ -62,7 +62,7 @@ const GROUP_METHODS = [
   { value: "activity", label: "Activity" },
   { value: "tags", label: "Tags" },
   { value: "team", label: "Team" },
-  { value: "teamMember", label: "User" },
+  { value: "member", label: "Member" },
   { value: "sprint", label: "Sprint" }
 ];
 
@@ -79,7 +79,7 @@ function Time() {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [team, setTeam] = useState([]);
-  const [teamMember, setTeamMember] = useState([]);
+  const [member, setMember] = useState([]);
   const [activity, setActivity] = useState([]);
   const [tags, setTags] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
@@ -181,7 +181,7 @@ function Time() {
 
     let dateFilter = date <= endDate && date >= startDate;
     let teamFilter = team.length === 0 || team.includes(entryTeam);
-    let userFilter = teamMember.length === 0 || teamMember.includes(user);
+    let userFilter = member.length === 0 || member.includes(user);
     let activityFilter =
       activity.length === 0 || activity.includes(entryActivity);
     let tagsFilter = tags.length === 0;
@@ -233,8 +233,8 @@ function Time() {
   /**
    * Updates filters with the new team members.
    */
-  const changeTeamMembers = (newUsers) => {
-    setTeamMember(newUsers);
+  const changeMember = (newUsers) => {
+    setMember(newUsers);
   };
 
   /**
@@ -281,8 +281,10 @@ function Time() {
       const entryElement = entry[toGet];
 
       if (!(entryElement in lookUp)) {
-        toGets.push(entryElement);
-        lookUp[entryElement] = 1;
+        if (entryElement !== "") {
+          toGets.push(entryElement);
+          lookUp[entryElement] = 1;
+        }
       }
     });
 
@@ -322,7 +324,7 @@ function Time() {
   }
 
   const allTeams = getAllFromDb("Team");
-  const allTeamMembers = getAllFromDb("Member");
+  const allMembers = getAllFromDb("Member");
   const allActivities = getAllFromDb("Activity");
   const allTags = getAllTags();
 
@@ -466,9 +468,9 @@ function Time() {
         )}
         {selectMultiComponent(
             "Member:",
-            teamMember,
-            allTeamMembers,
-            changeTeamMembers
+            member,
+            allMembers,
+            changeMember
         )}
         {selectMultiComponent(
             "Activity:",
