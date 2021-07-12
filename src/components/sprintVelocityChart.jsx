@@ -9,105 +9,24 @@ import DataGrid, {
     Selection, Summary
 } from "devextreme-react/data-grid";
 
-const COLUMNS = [
-    {
-        title: 'Sprint',
-        dataIndex: 'sprint',
-    },
-    {
-        title: 'Capacity',
-        dataIndex: 'capacity',
-        editable: true
-    },
-    {
-        title: 'Completed',
-        dataIndex: 'completed',
-        editable: true
-    },
-    {
-        title: 'Velocity',
-        dataIndex: 'velocity',
-    }
-];
+import '../css/sprintVelocityChart.css';
 
+const HOURS_PER_DAY = 8;
+
+/**
+ * Creates the sprint velocity page. It has states: sprints, data for bar, line charts, and table.
+ * The data are initially empty arrays.
+ */
 function SprintVelocityChart() {
+    const [sprints, setSprints] = useState([]);
     const [barData, setBarData] = useState([]);
     const [lineData, setLineData] = useState([]);
     const [tableData, setTableData] = useState([]);
 
-    const saveNewBarData = (key, sprint, capacity, completed) => {
-        const newBarData = [...barData];
-        const timeIndex = newBarData.findIndex(item => key + '.1' === item.key);
-
-        const timeItem = newBarData[timeIndex];
-        const newTimeItem = {
-            key: key + '.1',
-            sprint: sprint,
-            value: capacity,
-            type: 'Capacity'
-        };
-
-        newBarData.splice(timeIndex, 1, { ...timeItem, ...newTimeItem });
-
-        const storyIndex = newBarData.findIndex(item => key + '.2' === item.key);
-
-        const storyItem = newBarData[storyIndex];
-        const newStoryItem = {
-            key: key + '.2',
-            sprint: sprint,
-            value: completed,
-            type: 'Completed Story Points'
-        };
-
-        newBarData.splice(storyIndex, 1, { ...storyItem, ...newStoryItem });
-
-        setBarData(newBarData);
-    }
-
-    const saveNewLineData = (key, sprint, velocity) => {
-        const newLineData = [...lineData];
-        const index = newLineData.findIndex(item => key === item.key);
-
-        const item = newLineData[index];
-        const newItem = {
-            key: key,
-            sprint: sprint,
-            velocity: velocity
-        };
-
-        newLineData.splice(index, 1, { ...item, ...newItem });
-
-        setLineData(newLineData);
-    }
-
-    const saveNewTableData = (key, sprint, capacity, completed, velocity) => {
-        const newTableData = [...tableData];
-        const index = newTableData.findIndex(item => key === item.key);
-
-        const item = newTableData[index];
-        const newItem = {
-            key: key,
-            sprint: sprint,
-            capacity: capacity,
-            completed: completed,
-            velocity: velocity
-        };
-
-        newTableData.splice(index, 1, {...item, ...newItem});
-
-        setTableData(newTableData);
-    }
-
-    const handleSave = ({ key, sprint, capacity, completed }) => {
-        let capacityParse = parseFloat(capacity);
-        let completedParse = parseFloat(completed);
-        let velocity = completedParse / (capacityParse / 8);
-
-        saveNewTableData(key, sprint, capacityParse, completedParse, velocity);
-        saveNewBarData(key, sprint, capacityParse, completedParse);
-        saveNewLineData(key, sprint, velocity);
-    }
-
+    /**
+     * Takes in a sorted array of the sprints and data from `getData` and use them to populate the
+     * data for the bar, line, and table to be shown.
+     */
     const populateData = (lookUp, sprints) => {
         let barData = [];
         let lineData = [];
@@ -124,7 +43,7 @@ function SprintVelocityChart() {
                 let currMember = currSprint[name];
                 let hours = currMember["hours"];
                 let storyPoints = currMember["storyPoints"];
-                let velocity = storyPoints / (hours / 8);
+                let velocity = storyPoints / (hours / HOURS_PER_DAY);
 
                 totalCapacity += hours;
                 totalStoryPoints += storyPoints;
@@ -139,7 +58,7 @@ function SprintVelocityChart() {
                 })
             }
 
-            let totalVelocity = totalStoryPoints / (totalCapacity / 8);
+            let totalVelocity = totalStoryPoints / (totalCapacity / HOURS_PER_DAY);
 
             barData.push(
                 {
@@ -167,7 +86,11 @@ function SprintVelocityChart() {
         setLineData(lineData);
     }
 
-    const getChartData = (list) => {
+    /**
+     * Takes in the data from the csv file and filters data from tech team with story point inputted.
+     * The data is condensed to sprints and users with the cumulated hours and story points.
+     */
+    const getData = (list) => {
         let lookUp = {};
         let sprints = [];
 
@@ -201,11 +124,112 @@ function SprintVelocityChart() {
             })
 
         sprints.sort();
+        setSprints(sprints);
 
         populateData(lookUp, sprints);
     }
 
-    // process CSV data
+    /**
+     * Takes in the new data to populate the bar and line charts.
+     */
+    const updateCharts = (lookUp) => {
+        let newBarData = [];
+        let newLineData = [];
+
+        sprints.forEach(sprint => {
+            let currSprint = lookUp[sprint];
+            let capacity = currSprint['capacity'];
+            let storyPoints = currSprint['storyPoints'];
+            let velocity = storyPoints / (capacity / HOURS_PER_DAY);
+
+            newBarData.push(
+                {
+                    sprint: sprint,
+                    value: capacity,
+                    type: 'Capacity'
+                },
+                {
+                    sprint: sprint,
+                    value: storyPoints,
+                    type: 'Completed Story Points'
+                })
+
+            newLineData.push({
+                sprint: sprint,
+                velocity: velocity
+            })
+        })
+
+        setBarData(newBarData);
+        setLineData(newLineData);
+    }
+
+    /**
+     * Takes in new table data and mutate it to suitable data for the charts.
+     */
+    const prepNewChartData = (newTableData) => {
+        let lookUp = {};
+
+        newTableData.forEach(entry => {
+            let sprint = entry["sprint"];
+            let capacity = entry["capacity"];
+            let storyPoints = entry["storyPoints"];
+
+            if (!(sprint in lookUp)) {
+                lookUp[sprint] = {
+                    capacity: capacity,
+                    storyPoints: storyPoints
+                }
+            } else {
+                let currSprint = lookUp[sprint];
+                currSprint['capacity'] += capacity;
+                currSprint['storyPoints'] += storyPoints;
+            }
+        })
+
+        updateCharts(lookUp);
+    }
+
+    /**
+     * Makes use of the relevant data to be changed and the new data, to create the new table data,
+     * before updating the charts' data.
+     */
+    const updateTable = (dataToChange, edit) => {
+        let newTableData = [...tableData];
+        let index = newTableData.findIndex(item => item['id'] === dataToChange['id']);
+        let oldData = newTableData[index];
+
+        for (let key in edit) {
+            dataToChange[key] = edit[key];
+        }
+
+        dataToChange['velocity'] = dataToChange['storyPoints'] / (dataToChange['capacity'] / HOURS_PER_DAY);
+
+        newTableData.splice(index, 1, { ...oldData, ...dataToChange })
+
+        setTableData(newTableData);
+        prepNewChartData(newTableData);
+    }
+
+    /**
+     * Takes in the changes made in the edit on the sprint velocity table to update charts and table
+     * data.
+     */
+    const updateChange = (changes) => {
+        if (changes.length === 0) {
+            return;
+        }
+
+        let dataToChange = changes[0]['key'];
+        let edit = changes[0]['data'];
+
+        updateTable(dataToChange, edit);
+    };
+
+    /**
+     * Converts the csv file to JSON format and used the data for the charts and table.
+     * credit: https://www.cluemediator.com/read-csv-file-in-react
+     */
     const processData = dataString => {
         const dataStringLines = dataString.split(/\r\n|\n/);
         const headers = dataStringLines[0].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -235,10 +259,13 @@ function SprintVelocityChart() {
             }
         }
 
-        getChartData(list);
+        getData(list);
     }
 
-    // handle file upload
+    /**
+     * Handles the csv file uploaded.
+     * credit: https://www.cluemediator.com/read-csv-file-in-react
+     */
     const handleFileUpload = e => {
         const file = e.target.files[0];
         if (!file) {
@@ -260,6 +287,9 @@ function SprintVelocityChart() {
         reader.readAsBinaryString(file);
     }
 
+    /**
+     * Calculates the total sprint velocity in each sprint.
+     */
     const calculateVelocity = (options) => {
         let process = options.summaryProcess;
         switch (process) {
@@ -283,28 +313,14 @@ function SprintVelocityChart() {
 
             case "finalize":
                 let finalStoryPoints = options.totalValue.storyPoints;
-                let finalCapacity = options.totalValue.capacity / 8;
+                let finalCapacity = options.totalValue.capacity / HOURS_PER_DAY;
                 options.totalValue = finalStoryPoints / finalCapacity
         }
     }
 
-    COLUMNS.map(col => {
-        if (!col.editable) {
-            return col;
-        }
-
-        return {
-            ...col,
-            onCell: (record) => ({
-                record,
-                editable: col.editable,
-                dataIndex: col.dataIndex,
-                title: col.title,
-                handleSave: handleSave,
-            }),
-        };
-    });
-
+    /**
+     * Config used for bar and line charts.
+     */
     let config = {
         data: [barData, lineData],
         xField: 'sprint',
@@ -334,22 +350,24 @@ function SprintVelocityChart() {
     };
 
     const UploadFileComponent = () => (
-        <input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            onChange={handleFileUpload}
-        />
+        <div className= 'uploadFileComponent'>
+            <input
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={handleFileUpload}
+            />
+        </div>
     );
 
     const titleComponent = () => (
-      <div style={{ margin:"5px", display:"flex", justifyContent:"space-between", width:"700px" }}>
+      <div className= 'titleComponent' >
           <h2>Sprint Velocity</h2>
           {UploadFileComponent()}
       </div>
     );
 
     const multiAxesComponent = () => (
-        <div className="chart" style={{ width: "100%", height: "70vh" }}>
+        <div className="chart">
             <DualAxes
                 {...config}
             />
@@ -367,26 +385,27 @@ function SprintVelocityChart() {
                 <Grouping autoExpandAll={true} />
                 <Editing
                     mode= 'cell'
+                    onChangesChange={updateChange}
                     allowUpdating={true}
                 />
 
                 <Column dataField= 'sprint' caption= 'Sprint' groupIndex={0} />
                 <Column dataField= 'name' />
-                <Column dataField= 'capacity' />
-                <Column dataField= 'storyPoints' caption= 'Completed Story Points' />
-                <Column dataField= 'velocity' />
+                <Column dataField= 'capacity' caption= "Capacity (hrs)"/>
+                <Column dataField= 'storyPoints' caption= 'Story Points' />
+                <Column dataField= 'velocity' caption= 'Velocity (SP / day)' />
 
                 <Summary calculateCustomSummary={calculateVelocity}>
                     <GroupItem
                         column= "capacity"
                         summaryType= "sum"
-                        displayFormat= "Total Capacity: {0}"
+                        displayFormat= "Capacity: {0}"
                         alignByColumn={true}
                     />
                     <GroupItem
                         column= "storyPoints"
                         summaryType= "sum"
-                        displayFormat= "Total Story Points: {0}"
+                        displayFormat= "Story Points: {0}"
                         alignByColumn={true}
                     />
                     <GroupItem
@@ -403,9 +422,9 @@ function SprintVelocityChart() {
     return (
         <div>
             {titleComponent()}
-            <div>
-                {multiAxesComponent()}
+            <div className= "tableAndChart">
                 {dataGridComponent()}
+                {multiAxesComponent()}
             </div>
         </div>
     )

@@ -6,9 +6,8 @@ import DataGrid, {
   Export,
   Grouping,
   GroupItem,
-  Scrolling,
   Selection,
-  Summary,
+  Summary, TotalItem,
 } from "devextreme-react/data-grid";
 import * as XLSX from "xlsx";
 
@@ -24,6 +23,11 @@ const COLUMNS = [
   {
     dataField: "date",
     dataType: "date",
+    toSort: false,
+  },
+  {
+    dataField: "sprint",
+    dataType: "string",
     toSort: false,
   },
   {
@@ -59,10 +63,15 @@ const GROUP_METHODS = [
   { value: "tags", label: "Tags" },
   { value: "team", label: "Team" },
   { value: "teamMember", label: "User" },
+  { value: "sprint", label: "Sprint" }
 ];
 
 const INITIAL_GROUP_BY = "activity";
 
+/**
+ * Creates the time spent per activity page. It has states: db, minDate, maxDate, startDate, endDate,
+ * team, teamMember, activity, tags, groupBy, columns.
+ */
 function Time() {
   const [db, setDb] = useState([]);
   const [minDate, setMinDate] = useState(new Date());
@@ -76,7 +85,10 @@ function Time() {
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
   const [columns, setColumns] = useState(COLUMNS);
 
-  // process CSV data
+  /**
+   * Converts csv file to JSON and use the data for db, min, max, start, end dates.
+   * credit: https://www.cluemediator.com/read-csv-file-in-react
+   */
   const processData = (dataString) => {
     const dataStringLines = dataString.split(/\r\n|\n/);
     const headers = dataStringLines[0].split(
@@ -128,7 +140,10 @@ function Time() {
     setDb(list);
   };
 
-  // handle file upload
+  /**
+   * Handles the csv file uploaded.
+   * credit: https://www.cluemediator.com/read-csv-file-in-react
+   */
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) {
@@ -150,6 +165,9 @@ function Time() {
     reader.readAsBinaryString(file);
   };
 
+  /**
+   * Checks the entry from db on whether it should be part of the data used.
+   */
   const isEntryValid = (entry) => {
     const date = new Date(entry["Date"]);
     const entryTeam = entry["Team"];
@@ -180,6 +198,9 @@ function Time() {
     );
   };
 
+  /**
+   * Gets the relevant data from the db for the charts and table.
+   */
   const getData = () => {
     let i = 1;
     let tempData = [];
@@ -188,6 +209,7 @@ function Time() {
         tempData.push({
           id: i++,
           date: new Date(entry["Date"]),
+          sprint: entry["Sprint Cycle"],
           team: entry["Team"],
           teamMember: entry["Team Member"],
           activity: entry["Activity"],
@@ -201,18 +223,30 @@ function Time() {
   };
   let data = getData();
 
+  /**
+   * Updates filters with the new teams.
+   */
   const changeTeam = (newTeams) => {
     setTeam(newTeams);
   };
 
+  /**
+   * Updates filters with the new team members.
+   */
   const changeTeamMembers = (newUsers) => {
     setTeamMember(newUsers);
   };
 
+  /**
+   * Updates filters with the new activities.
+   */
   const changeActivities = (newActivities) => {
     setActivity(newActivities);
   };
 
+  /**
+   * Updates filters with the new dates.
+   */
   const changeDate = (entries) => {
     if (entries === null) {
       return;
@@ -222,14 +256,23 @@ function Time() {
     setEndDate(dates[1]);
   };
 
+  /**
+   * Updates filters with the new tags.
+   */
   const changeTags = (newTags) => {
     setTags(newTags);
   };
 
+  /**
+   * Updates with new group by option.
+   */
   const changeGroupBy = (newGroupBy) => {
     setGroupBy(newGroupBy);
   };
 
+  /**
+   * Gets all distinct entries based on the toGet field.
+   */
   const getAllFromDb = (toGet) => {
     const lookUp = {};
     const toGets = [];
@@ -246,6 +289,9 @@ function Time() {
     return toGets.sort();
   };
 
+  /**
+   * Gets all distinct tags from db.
+   */
   const getAllTags = () => {
     const lookUp = {};
     const tags = [];
@@ -267,6 +313,13 @@ function Time() {
 
     return tags.sort();
   };
+
+  /**
+   * Checks whether the date inputted is in between the min and max dates.
+   */
+  const checkDate = (date) => {
+    return date < moment(minDate) || date > moment(maxDate);
+  }
 
   const allTeams = getAllFromDb("Team");
   const allTeamMembers = getAllFromDb("Team Member");
@@ -332,10 +385,6 @@ function Time() {
       </div>
   );
 
-  const checkDate = (date) => {
-    return date < moment(minDate) || date > moment(maxDate);
-  }
-
   const datePickerRow = () => (
     <div className='datePickerRow'>
       <RangePicker
@@ -356,8 +405,6 @@ function Time() {
     >
       <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
       <Selection mode={"single"} />
-
-      <Scrolling mode={"infinite"} />
 
       {columns.map(({ toGroup, dataField, dataType }) =>
         toGroup ? (
@@ -382,6 +429,11 @@ function Time() {
           summaryType="sum"
           displayFormat="Total Hours: {0}"
           showInGroupFooter={true}
+        />
+        <TotalItem
+          column="hours"
+          summaryType="sum"
+          displayFormat="Total: {0}"
         />
       </Summary>
 
