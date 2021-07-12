@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from "react";
-import {DatePicker, Select} from "antd";
-import {FormLabel, Grid} from "@material-ui/core";
+import React, { useEffect, useState } from "react";
+import { observer } from "mobx-react";
+import { DatePicker, Select } from "antd";
+import { FormLabel, Grid } from "@material-ui/core";
 import DataGrid, {
   Column,
   Export,
@@ -10,6 +11,8 @@ import DataGrid, {
   Selection,
   Summary,
 } from "devextreme-react/data-grid";
+
+import ExcelStore from "../stores/excelStore";
 import * as XLSX from "xlsx";
 
 import TimeChart from "./timeChart";
@@ -128,20 +131,23 @@ function Time() {
 
   // handle file upload
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      /* Parse data */
-      const bStr = evt.target.result;
-      const wb = XLSX.read(bStr, { type: "binary" });
-      /* Get first worksheet */
-      const wsName = wb.SheetNames[0];
-      const ws = wb.Sheets[wsName];
-      /* Convert array of arrays */
-      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
-      processData(data);
-    };
-    reader.readAsBinaryString(file);
+    if (ExcelStore.excelFiles.length > 0) {
+      // const file = e.target.files[0]; // TO BE COMENTTED /////////////////////////////////
+      const file = ExcelStore.excelFiles[0];
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        /* Parse data */
+        const bStr = evt.target.result;
+        const wb = XLSX.read(bStr, { type: "binary" });
+        /* Get first worksheet */
+        const wsName = wb.SheetNames[0];
+        const ws = wb.Sheets[wsName];
+        /* Convert array of arrays */
+        const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+        processData(data);
+      };
+      reader.readAsBinaryString(file);
+    }
   };
 
   const isEntryValid = (entry) => {
@@ -283,8 +289,8 @@ function Time() {
     options,
     onChange
   ) => (
-    <div className={className} style={{ width: '20%' }}>
-      <FormLabel style={{ fontWeight: 'bold' }}>{labelText}</FormLabel>
+    <div className={className} style={{ width: "20%" }}>
+      <FormLabel style={{ fontWeight: "bold" }}>{labelText}</FormLabel>
       <Select
         mode="multiple"
         allowClear
@@ -308,7 +314,7 @@ function Time() {
     options,
     onChange
   ) => (
-    <div className={className} >
+    <div className={className}>
       <FormLabel style={{ margin: 5 }}>{labelText}</FormLabel>
       <Select value={selectName} onChange={onChange} size="medium">
         {options.map((option) => (
@@ -318,19 +324,23 @@ function Time() {
     </div>
   );
 
-  const uploadFileComponent = () => (
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: "18%" }}>
-        <input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            onChange={handleFileUpload}
-        />
-      </div>
-  );
+  // const uploadFileComponent = () => (
+  //   // TO BE COMMENTED ///////////////////////////////////////////////////////////////////////////////
+  //   <div
+  //     style={{
+  //       display: "flex",
+  //       flexDirection: "column",
+  //       justifyContent: "center",
+  //       width: "18%",
+  //     }}
+  //   >
+  //     <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileUpload} />
+  //   </div>
+  // );
 
   const checkDate = (date) => {
     return date < moment(minDate) || date > moment(maxDate);
-  }
+  };
 
   const datePickerRow = () => (
     <div>
@@ -386,75 +396,62 @@ function Time() {
   );
 
   const firstRowComponent = () => (
-      <Grid container justify={'space-evenly'} style={{ margin: 5, padding: 5 }}>
-        {uploadFileComponent()}
-        {datePickerRow()}
-        {selectSingleComponent(
-            "sortForm",
-            "Group By:",
-            groupBy,
-            GROUP_METHODS,
-            changeGroupBy
-        )}
-      </Grid>
-  )
+    <Grid container justify={"space-evenly"} style={{ margin: 5, padding: 5 }}>
+      {/* {uploadFileComponent()} */}
+      {/* {///////////////////////////////////////////////////////////////////////////} */}
+      {handleFileUpload()}
+      {datePickerRow()}
+      {selectSingleComponent(
+        "sortForm",
+        "Group By:",
+        groupBy,
+        GROUP_METHODS,
+        changeGroupBy
+      )}
+    </Grid>
+  );
 
   const filterOptionsComponent = () => (
-      <Grid container justify={"space-evenly"} >
-        {selectMultiComponent(
-            "teamForm",
-            "Team:",
-            team,
-            allTeams,
-            changeTeam
-        )}
-        {selectMultiComponent(
-            "userForm",
-            "Team Member:",
-            teamMember,
-            allTeamMembers,
-            changeTeamMembers
-        )}
-        {selectMultiComponent(
-            "activityForm",
-            "Activity:",
-            activity,
-            allActivities,
-            changeActivities
-        )}
-        {selectMultiComponent(
-            "tagForm",
-            "Tags:",
-            tags,
-            allTags,
-            changeTags
-        )}
-      </Grid>
+    <Grid container justify={"space-evenly"}>
+      {selectMultiComponent("teamForm", "Team:", team, allTeams, changeTeam)}
+      {selectMultiComponent(
+        "userForm",
+        "Team Member:",
+        teamMember,
+        allTeamMembers,
+        changeTeamMembers
+      )}
+      {selectMultiComponent(
+        "activityForm",
+        "Activity:",
+        activity,
+        allActivities,
+        changeActivities
+      )}
+      {selectMultiComponent("tagForm", "Tags:", tags, allTags, changeTags)}
+    </Grid>
   );
 
   const secondRowComponent = () => (
-      <Grid container justify={'space-evenly'} >
-        {filterOptionsComponent()}
-      </Grid>
-  )
+    <Grid container justify={"space-evenly"}>
+      {filterOptionsComponent()}
+    </Grid>
+  );
 
   return (
-      <div>
-        <Grid container justify={"space-evenly"}>
-          <div style={{ width: '49%', margin: 5 }}>
-            {firstRowComponent()}
-            {secondRowComponent()}
-            {dataGridComponent()}
-          </div>
-          <div className="donutChart" style={{ width: "49%" }}>
-            <TimeChart
-              data={data}
-              groupBy={groupBy}
-            />
-          </div>
-        </Grid>
-      </div>
+    <div>
+      <Grid container justify={"space-evenly"}>
+        <div style={{ width: "49%", margin: 5 }}>
+          {firstRowComponent()}
+          {secondRowComponent()}
+          {dataGridComponent()}
+        </div>
+        <div className="donutChart" style={{ width: "49%" }}>
+          <TimeChart data={data} groupBy={groupBy} />
+        </div>
+      </Grid>
+    </div>
   );
 }
 
-export default Time;
+export default observer(Time);

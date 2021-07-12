@@ -139,9 +139,9 @@ class S3File extends Component {
         fileName: null,
       });
 
-      var newItems = this.state.listFiles.filter((item) => {
-        return item.Key !== params.Key;
-      });
+      var newItems = this.state.listFiles.filter(
+        (item) => item.Key !== params.Key
+      );
       this.setState({
         listFiles: newItems,
       });
