@@ -80,8 +80,8 @@ function TimeChart(props) {
             xAxis: {
                 label: {
                     autoHide: true,
-                    autoRotate: false,
-                    autoEllipsis: true
+                    autoRotate: true,
+                    autoEllipsis: true,
                 }
             },
             meta: {
