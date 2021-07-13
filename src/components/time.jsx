@@ -39,13 +39,13 @@ const COLUMNS = [
     toSort: false,
   },
   {
-    dataField: "teamMember",
+    dataField: "member",
     dataType: "string",
     toSort: false,
   },
   {
     dataField: "activity",
-    dataType: "number",
+    dataType: "string",
     toSort: false,
   },
   {
@@ -65,7 +65,7 @@ const GROUP_METHODS = [
   { value: "activity", label: "Activity" },
   { value: "tags", label: "Tags" },
   { value: "team", label: "Team" },
-  { value: "teamMember", label: "User" },
+  { value: "member", label: "Member" },
   { value: "sprint", label: "Sprint" }
 ];
 
@@ -73,7 +73,7 @@ const INITIAL_GROUP_BY = "activity";
 
 /**
  * Creates the time spent per activity page. It has states: db, minDate, maxDate, startDate, endDate,
- * team, teamMember, activity, tags, groupBy, columns.
+ * team, member, activity, tags, groupBy, columns.
  */
 function Time() {
   const [db, setDb] = useState([]);
@@ -82,7 +82,7 @@ function Time() {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [team, setTeam] = useState([]);
-  const [teamMember, setTeamMember] = useState([]);
+  const [member, setMember] = useState([]);
   const [activity, setActivity] = useState([]);
   const [tags, setTags] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
@@ -174,7 +174,7 @@ function Time() {
   const isEntryValid = (entry) => {
     const date = new Date(entry["Date"]);
     const entryTeam = entry["Team"];
-    const user = entry["Team Member"];
+    const user = entry["Member"];
     const entryActivity = entry["Activity"];
     const entryTags = entry["Tags"].split(",");
 
@@ -184,7 +184,7 @@ function Time() {
 
     let dateFilter = date <= endDate && date >= startDate;
     let teamFilter = team.length === 0 || team.includes(entryTeam);
-    let userFilter = teamMember.length === 0 || teamMember.includes(user);
+    let userFilter = member.length === 0 || member.includes(user);
     let activityFilter =
       activity.length === 0 || activity.includes(entryActivity);
     let tagsFilter = tags.length === 0;
@@ -214,7 +214,7 @@ function Time() {
           date: new Date(entry["Date"]),
           sprint: entry["Sprint Cycle"],
           team: entry["Team"],
-          teamMember: entry["Team Member"],
+          member: entry["Member"],
           activity: entry["Activity"],
           hours: entry["Hours"],
           tags: entry["Tags"],
@@ -236,8 +236,8 @@ function Time() {
   /**
    * Updates filters with the new team members.
    */
-  const changeTeamMembers = (newUsers) => {
-    setTeamMember(newUsers);
+  const changeMember = (newUsers) => {
+    setMember(newUsers);
   };
 
   /**
@@ -284,8 +284,10 @@ function Time() {
       const entryElement = entry[toGet];
 
       if (!(entryElement in lookUp)) {
-        toGets.push(entryElement);
-        lookUp[entryElement] = 1;
+        if (entryElement !== "") {
+          toGets.push(entryElement);
+          lookUp[entryElement] = 1;
+        }
       }
     });
 
@@ -325,7 +327,7 @@ function Time() {
   }
 
   const allTeams = getAllFromDb("Team");
-  const allTeamMembers = getAllFromDb("Team Member");
+  const allMembers = getAllFromDb("Member");
   const allActivities = getAllFromDb("Activity");
   const allTags = getAllTags();
 
@@ -432,12 +434,14 @@ function Time() {
           column="hours"
           summaryType="sum"
           displayFormat="Total Hours: {0}"
+          valueFormat= "#.###"
           showInGroupFooter={true}
         />
         <TotalItem
           column="hours"
           summaryType="sum"
           displayFormat="Total: {0}"
+          valueFormat= "#.###"
         />
       </Summary>
 
@@ -467,10 +471,10 @@ function Time() {
             changeTeam
         )}
         {selectMultiComponent(
-            "Team Member:",
-            teamMember,
-            allTeamMembers,
-            changeTeamMembers
+            "Member:",
+            member,
+            allMembers,
+            changeMember
         )}
         {selectMultiComponent(
             "Activity:",
