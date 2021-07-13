@@ -35,6 +35,7 @@ function SprintVelocityChart() {
 
         sprints.forEach(sprint => {
             let currSprint = lookUp[sprint];
+            console.log('curr sprint', currSprint);
             let totalCapacity = 0;
             let totalStoryPoints = 0;
             let j = 0;
@@ -94,29 +95,29 @@ function SprintVelocityChart() {
         let lookUp = {};
         let sprints = [];
 
-        list.filter(entry => entry["Team"] === "Tech Team" && entry["Story Points Completed"] !== "")
+        list.filter(entry => entry["Team"].includes("Tech Team") && entry["Story Points"] !== "")
             .forEach(entry => {
                 let sprint = entry["Sprint Cycle"];
                 let hours = parseFloat(entry["Hours"]);
-                let storyPoints = parseFloat(entry["Story Points Completed"]);
-                let teamMember = entry["Team Member"];
+                let storyPoints = parseFloat(entry["Story Points"]);
+                let member = entry["Member"];
 
                 if (!(sprint in lookUp)) {
                     lookUp[sprint] = {};
-                    lookUp[sprint][teamMember] = {
+                    lookUp[sprint][member] = {
                         hours: hours,
                         storyPoints: storyPoints
                     };
                     sprints.push(sprint);
                 } else {
                     let currSprint = lookUp[sprint];
-                    if (!(teamMember in currSprint)) {
-                        currSprint[teamMember] = {
+                    if (!(member in currSprint)) {
+                        currSprint[member] = {
                             hours: hours,
                             storyPoints: storyPoints
                         }
                     } else {
-                        let currMember = currSprint[teamMember];
+                        let currMember = currSprint[member];
                         currMember["hours"] += hours;
                         currMember["storyPoints"] += storyPoints;
                     }
@@ -393,7 +394,7 @@ function SprintVelocityChart() {
                 <Column dataField= 'name' />
                 <Column dataField= 'capacity' caption= "Capacity (hrs)"/>
                 <Column dataField= 'storyPoints' caption= 'Story Points' />
-                <Column dataField= 'velocity' caption= 'Velocity (SP / day)' />
+                <Column dataField= 'velocity' caption= 'Velocity (SP / day)' format= '#.###'/>
 
                 <Summary calculateCustomSummary={calculateVelocity}>
                     <GroupItem
@@ -411,6 +412,7 @@ function SprintVelocityChart() {
                     <GroupItem
                         summaryType= "custom"
                         displayFormat= "Sprint Velocity: {0}"
+                        valueFormat= "#.###"
                         alignByColumn={true}
                         showInColumn= 'velocity'
                     />
