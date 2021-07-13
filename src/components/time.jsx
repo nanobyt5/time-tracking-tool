@@ -1,17 +1,21 @@
-import React, {useEffect, useState} from "react";
-import {DatePicker, Select} from "antd";
-import {FormLabel, Grid} from "@material-ui/core";
+import React, { useEffect, useState } from "react";
+import { observer } from "mobx-react";
+import { DatePicker, Select } from "antd";
+import { FormLabel, Grid } from "@material-ui/core";
 import DataGrid, {
   Column,
   Export,
   Grouping,
   GroupItem,
   Selection,
-  Summary, TotalItem,
+  Summary,
+  TotalItem,
 } from "devextreme-react/data-grid";
+
+import ExcelStore from "../stores/excelStore";
 import * as XLSX from "xlsx";
 
-import '../css/time.css';
+import "../css/time.css";
 
 import TimeChart from "./timeChart";
 import moment from "moment";
@@ -63,7 +67,7 @@ const GROUP_METHODS = [
   { value: "tags", label: "Tags" },
   { value: "team", label: "Team" },
   { value: "member", label: "Member" },
-  { value: "sprint", label: "Sprint" }
+  { value: "sprint", label: "Sprint" },
 ];
 
 const INITIAL_GROUP_BY = "activity";
@@ -145,7 +149,8 @@ function Time() {
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
+    const file = ExcelStore.excelFiles[0];
+    //const file = e.target.files[0]; // To be removed ///////////////////
     if (!file) {
       return;
     }
@@ -321,7 +326,7 @@ function Time() {
    */
   const checkDate = (date) => {
     return date < moment(minDate) || date > moment(maxDate);
-  }
+  };
 
   const allTeams = getAllFromDb("Team");
   const allMembers = getAllFromDb("Member");
@@ -337,14 +342,9 @@ function Time() {
     setColumns(newCols);
   }, [groupBy]);
 
-  const selectMultiComponent = (
-    labelText,
-    selectName,
-    options,
-    onChange
-  ) => (
-    <div className='selectMultiComponent'>
-      <FormLabel style={{ fontWeight: 'bold' }}>{labelText}</FormLabel>
+  const selectMultiComponent = (labelText, selectName, options, onChange) => (
+    <div className="selectMultiComponent">
+      <FormLabel style={{ fontWeight: "bold" }}>{labelText}</FormLabel>
       <Select
         mode="multiple"
         allowClear
@@ -361,15 +361,15 @@ function Time() {
     </div>
   );
 
-  const selectSingleComponent = (
-    labelText,
-    selectName,
-    options,
-    onChange
-  ) => (
-    <div className='selectSingleComponent' >
+  const selectSingleComponent = (labelText, selectName, options, onChange) => (
+    <div className="selectSingleComponent">
       <FormLabel style={{ margin: 5 }}>{labelText}</FormLabel>
-      <Select value={selectName} onChange={onChange} size="medium" style={{ width: '60%' }}>
+      <Select
+        value={selectName}
+        onChange={onChange}
+        size="medium"
+        style={{ width: "60%" }}
+      >
         {options.map((option) => (
           <Option value={option["value"]}>{option["label"]}</Option>
         ))}
@@ -377,18 +377,18 @@ function Time() {
     </div>
   );
 
-  const uploadFileComponent = () => (
-      <div className='uploadFileComponent' >
-        <input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            onChange={handleFileUpload}
-        />
-      </div>
-  );
+  // const uploadFileComponent = () => (
+  //     <div className='uploadFileComponent' >
+  //       <input
+  //           type="file"
+  //           accept=".csv,.xlsx,.xls"
+  //           onChange={handleFileUpload}
+  //       />
+  //     </div>
+  // );
 
   const datePickerRow = () => (
-    <div className='datePickerRow'>
+    <div className="datePickerRow">
       <RangePicker
         value={[moment(startDate), moment(endDate)]}
         onChange={changeDate}
@@ -430,14 +430,14 @@ function Time() {
           column="hours"
           summaryType="sum"
           displayFormat="Total Hours: {0}"
-          valueFormat= "#.###"
+          valueFormat="#.###"
           showInGroupFooter={true}
         />
         <TotalItem
           column="hours"
           summaryType="sum"
           displayFormat="Total: {0}"
-          valueFormat= "#.###"
+          valueFormat="#.###"
         />
       </Summary>
 
@@ -446,64 +446,48 @@ function Time() {
   );
 
   const firstRowComponent = () => (
-      <Grid container className='firstRow'>
-        {uploadFileComponent()}
-        {datePickerRow()}
-        {selectSingleComponent(
-            "Group By:",
-            groupBy,
-            GROUP_METHODS,
-            changeGroupBy
-        )}
-      </Grid>
-  )
+    <Grid container className="firstRow">
+      {/* {uploadFileComponent()} */}
+      {/* {///////////////////////////////////EDIT HERE////////////////////////////////////////} */}
+      {handleFileUpload()}
+      {datePickerRow()}
+      {selectSingleComponent(
+        "Group By:",
+        groupBy,
+        GROUP_METHODS,
+        changeGroupBy
+      )}
+    </Grid>
+  );
 
   const secondRowComponent = () => (
-      <Grid container justify={"space-between"} className='secondRow'>
-        {selectMultiComponent(
-            "Team:",
-            team,
-            allTeams,
-            changeTeam
-        )}
-        {selectMultiComponent(
-            "Member:",
-            member,
-            allMembers,
-            changeMember
-        )}
-        {selectMultiComponent(
-            "Activity:",
-            activity,
-            allActivities,
-            changeActivities
-        )}
-        {selectMultiComponent(
-            "Tags:",
-            tags,
-            allTags,
-            changeTags
-        )}
-      </Grid>
-  )
+    <Grid container justify={"space-between"} className="secondRow">
+      {selectMultiComponent("Team:", team, allTeams, changeTeam)}
+      {selectMultiComponent("Member:", member, allMembers, changeMember)}
+      {selectMultiComponent(
+        "Activity:",
+        activity,
+        allActivities,
+        changeActivities
+      )}
+      {selectMultiComponent("Tags:", tags, allTags, changeTags)}
+    </Grid>
+  );
 
   return (
-      <div>
-        <Grid container justify={"space-evenly"}>
-          <div className='tableWithForms'>
-            {firstRowComponent()}
-            {secondRowComponent()}
-            {dataGridComponent()}
-          </div>
-          <div className="donutChart">
-            <TimeChart
-              data={data}
-              groupBy={groupBy}
-            />
-          </div>
-        </Grid>
-      </div>
+    <div>
+      <Grid container justify={"space-evenly"}>
+        <div className="tableWithForms">
+          {firstRowComponent()}
+          {secondRowComponent()}
+          {dataGridComponent()}
+        </div>
+        <div className="donutChart">
+          <TimeChart data={data} groupBy={groupBy} />
+        </div>
+      </Grid>
+    </div>
   );
 }
 
-export default Time;
+export default observer(Time);
