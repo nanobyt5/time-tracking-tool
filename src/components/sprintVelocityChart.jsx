@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { observer } from "mobx-react";
 import { DualAxes } from "@ant-design/charts";
 import ExcelStore from "../stores/excelStore";
@@ -38,7 +38,6 @@ function SprintVelocityChart() {
 
     sprints.forEach((sprint) => {
       let currSprint = lookUp[sprint];
-      console.log("curr sprint", currSprint);
       let totalCapacity = 0;
       let totalStoryPoints = 0;
       let j = 0;
@@ -281,7 +280,7 @@ function SprintVelocityChart() {
    * Handles the csv file uploaded.
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
-  const handleFileUpload = (e) => {
+  const handleFileUpload = () => {
     const file = ExcelStore.excelFiles[0];
     //const file = e.target.files[0]; // To be removed ///////////////////
     if (!file) {
@@ -302,6 +301,10 @@ function SprintVelocityChart() {
     };
     reader.readAsBinaryString(file);
   };
+
+  useEffect(() => {
+    handleFileUpload();
+  }, [ExcelStore.excelFiles])
 
   /**
    * Calculates the total sprint velocity in each sprint.
@@ -380,7 +383,6 @@ function SprintVelocityChart() {
       <h2>Sprint Velocity</h2>
       {/* {UploadFileComponent()} */}
       {/* {///////////////////////////////////EDIT HERE////////////////////////////////////////} */}
-      {handleFileUpload()}
     </div>
   );
 
