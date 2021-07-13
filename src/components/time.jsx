@@ -94,6 +94,9 @@ function Time() {
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   const processData = (dataString) => {
+    if (!dataString) {
+      return;
+    }
     const dataStringLines = dataString.split(/\r\n|\n/);
     const headers = dataStringLines[0].split(
       /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
@@ -148,7 +151,7 @@ function Time() {
    * Handles the csv file uploaded.
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
-  const handleFileUpload = (e) => {
+  const handleFileUpload = () => {
     const file = ExcelStore.excelFiles[0];
     //const file = e.target.files[0]; // To be removed ///////////////////
     if (!file) {
@@ -169,6 +172,10 @@ function Time() {
     };
     reader.readAsBinaryString(file);
   };
+
+  useEffect(() => {
+    handleFileUpload();
+  }, [ExcelStore.excelFiles])
 
   /**
    * Checks the entry from db on whether it should be part of the data used.
@@ -449,7 +456,7 @@ function Time() {
     <Grid container className="firstRow">
       {/* {uploadFileComponent()} */}
       {/* {///////////////////////////////////EDIT HERE////////////////////////////////////////} */}
-      {handleFileUpload()}
+      {/*{processData(ExcelStore.excelFiles[0])}*/}
       {datePickerRow()}
       {selectSingleComponent(
         "Group By:",
