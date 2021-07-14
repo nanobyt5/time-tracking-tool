@@ -88,7 +88,6 @@ function Time() {
   const [tags, setTags] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
   const [columns, setColumns] = useState(COLUMNS);
-
   /**
    * Converts csv file to JSON and use the data for db, min, max, start, end dates.
    * credit: https://www.cluemediator.com/read-csv-file-in-react
@@ -152,7 +151,7 @@ function Time() {
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   const handleFileUpload = () => {
-    if (!ExcelStore.excelFiles.length) {
+    if (ExcelStore.excelFiles.length === 0) {
       return;
     }
     console.log('excel store in time page', ExcelStore.excelFiles[0]);

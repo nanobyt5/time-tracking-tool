@@ -281,6 +281,9 @@ function SprintVelocityChart() {
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   const handleFileUpload = () => {
+    if (ExcelStore.excelFiles.length === 0) {
+      return;
+    }
     const file = ExcelStore.excelFiles[0]["blob"];
     //const file = e.target.files[0]; // To be removed ///////////////////
     if (!file) {
@@ -304,7 +307,7 @@ function SprintVelocityChart() {
 
   useEffect(() => {
     handleFileUpload();
-  }, [ExcelStore.excelFiles])
+  }, [ExcelStore.excelFiles.length])
 
   /**
    * Calculates the total sprint velocity in each sprint.
