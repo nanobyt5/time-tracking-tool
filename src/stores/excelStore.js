@@ -1,14 +1,13 @@
-import { extendObservable } from 'mobx';
+import { extendObservable, configure } from 'mobx';
 
 class ExcelStore {
     constructor() {
+        configure({
+            enforceActions: "never"
+        })
         extendObservable(this, {
             excelFiles: []
         })
-
-        // configure({
-        //     enforceActions: "never"
-        // })
     }
 }
 
