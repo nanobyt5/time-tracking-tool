@@ -76,10 +76,17 @@ class S3Checkbox extends Component {
     } else {
       var newItems = this.state.fileNames.filter((item) => item !== params.Key);
       var newFiles = ExcelStore.excelFiles.filter(
-        (item) => item.name !== params.Key
+        (item) => {
+          if (item.name !== params.Key) {
+            return true;
+          }
+          return false;
+        }
       );
 
+      console.log('initial excel store:', [...ExcelStore.excelFiles]);
       ExcelStore.excelFiles = newFiles;
+      console.log('updated excel store:', [...ExcelStore.excelFiles]);
 
       this.setState({
         checkedState: updatedCheckedState,
@@ -133,11 +140,15 @@ class S3Checkbox extends Component {
     var addFile = ExcelStore.excelFiles;
     s3.getObject(params, (err, data) => {
       if (data) {
-        var file = new Blob([data.Body], {
+        let file = new Blob([data.Body], {
           type: data.ContentType,
         });
-        addFile.push(file);
-        ExcelStore.excelFiles.push(file);
+        // addFile.push(file);
+        ExcelStore.excelFiles.push({
+          name: params.Key,
+          blob: file
+        });
+        console.log('Excel store added:', ExcelStore.excelFiles);
         // this.setState({ excelFiles: addFile });
       } else {
         console.log("Error: " + err);

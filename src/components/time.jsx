@@ -152,7 +152,11 @@ function Time() {
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   const handleFileUpload = () => {
-    const file = ExcelStore.excelFiles[0];
+    if (!ExcelStore.excelFiles.length) {
+      return;
+    }
+    console.log('excel store in time page', ExcelStore.excelFiles[0]);
+    const file = ExcelStore.excelFiles[0]["blob"];
     //const file = e.target.files[0]; // To be removed ///////////////////
     if (!file) {
       return;
@@ -175,7 +179,7 @@ function Time() {
 
   useEffect(() => {
     handleFileUpload();
-  }, [ExcelStore.excelFiles])
+  }, [ExcelStore.excelFiles.length])
 
   /**
    * Checks the entry from db on whether it should be part of the data used.
