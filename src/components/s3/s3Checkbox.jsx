@@ -75,6 +75,7 @@ class S3Checkbox extends Component {
       });
     } else {
       var newItems = this.state.fileNames.filter((item) => item !== params.Key);
+      // ExcelStore.excelFiles.filter(item => item.name !== params.Key);
       var newFiles = ExcelStore.excelFiles.filter(
         (item) => item.name !== params.Key
       );
@@ -130,14 +131,17 @@ class S3Checkbox extends Component {
   };
 
   exportFromS3 = async (params) => {
-    var addFile = ExcelStore.excelFiles;
+    // var addFile = ExcelStore.excelFiles;
     s3.getObject(params, (err, data) => {
       if (data) {
-        var file = new Blob([data.Body], {
+        let file = new Blob([data.Body], {
           type: data.ContentType,
         });
-        addFile.push(file);
-        ExcelStore.excelFiles.push(file);
+        // addFile.push(file);
+        ExcelStore.excelFiles.push({
+          name: params.Key,
+          blob: file
+        });
         // this.setState({ excelFiles: addFile });
       } else {
         console.log("Error: " + err);
