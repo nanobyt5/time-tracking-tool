@@ -88,6 +88,7 @@ function Time() {
   const [tags, setTags] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
   const [columns, setColumns] = useState(COLUMNS);
+
   /**
    * Converts csv file to JSON and use the data for db, min, max, start, end dates.
    * credit: https://www.cluemediator.com/read-csv-file-in-react
@@ -154,7 +155,7 @@ function Time() {
     if (ExcelStore.excelFiles.length === 0) {
       return;
     }
-    console.log('excel store in time page', ExcelStore.excelFiles[0]);
+
     const file = ExcelStore.excelFiles[0]["blob"];
     //const file = e.target.files[0]; // To be removed ///////////////////
     if (!file) {
@@ -392,7 +393,7 @@ function Time() {
   //       <input
   //           type="file"
   //           accept=".csv,.xlsx,.xls"
-  //           onChange={handleFileUpload}
+  //           onChange={handleOnUpload}
   //       />
   //     </div>
   // );
@@ -459,7 +460,7 @@ function Time() {
     <Grid container className="firstRow">
       {/* {uploadFileComponent()} */}
       {/* {///////////////////////////////////EDIT HERE////////////////////////////////////////} */}
-      {/*{processData(ExcelStore.excelFiles[0])}*/}
+      {/*{convertCsvToJson(ExcelStore.excelFiles[0])}*/}
       {datePickerRow()}
       {selectSingleComponent(
         "Group By:",
