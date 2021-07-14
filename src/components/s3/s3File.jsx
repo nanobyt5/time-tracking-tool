@@ -123,18 +123,17 @@ class S3File extends Component {
       }
     }
 
-    console.log('json to upload:', jsonFile);
     const params = {
       Bucket: "time-tracking-storage",
-      Key: this.state.selectedFile.name,
+      Key: this.state.selectedFile.name.split('.csv', 1).join(''),
       ContentType: 'json',
-      Body: jsonFile,
+      Body: JSON.stringify(jsonFile),
     };
 
     if (
         window.confirm("Are you sure you want to upload " + params.Key + "?")
     ) {
-      this.uploadInS3(params);
+      this.uploadInS3(params).then(() => {console.log('success')});
 
       this.setState({
         labelValue: params.Key + " upload successfully.",
@@ -152,8 +151,9 @@ class S3File extends Component {
   handleOnUpload = () => {
     const file = this.state.selectedFile;
 
-    if (!file) {
+    if (file === null) {
       this.setState({ labelValue: "No file selected." });
+      return;
     }
 
     const reader = new FileReader();
