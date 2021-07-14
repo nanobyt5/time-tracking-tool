@@ -152,14 +152,11 @@ function Time() {
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   const handleFileUpload = () => {
-    if (ExcelStore.excelFiles.length === 0) {
-      return;
-    }
-
-    const file = ExcelStore.excelFiles[0]["blob"];
     //const file = e.target.files[0]; // To be removed ///////////////////
-    if (!file) {
-      return;
+    let file= new Blob();
+
+    if (ExcelStore.excelFiles.length > 0) {
+      file = ExcelStore.excelFiles[0];
     }
 
     const reader = new FileReader();
@@ -179,7 +176,7 @@ function Time() {
 
   useEffect(() => {
     handleFileUpload();
-  }, [ExcelStore.excelFiles.length])
+  }, [ExcelStore.excelFiles.length]);
 
   /**
    * Checks the entry from db on whether it should be part of the data used.
@@ -393,7 +390,7 @@ function Time() {
   //       <input
   //           type="file"
   //           accept=".csv,.xlsx,.xls"
-  //           onChange={handleOnUpload}
+  //           onChange={handleFileUpload}
   //       />
   //     </div>
   // );
@@ -458,9 +455,6 @@ function Time() {
 
   const firstRowComponent = () => (
     <Grid container className="firstRow">
-      {/* {uploadFileComponent()} */}
-      {/* {///////////////////////////////////EDIT HERE////////////////////////////////////////} */}
-      {/*{convertCsvToJson(ExcelStore.excelFiles[0])}*/}
       {datePickerRow()}
       {selectSingleComponent(
         "Group By:",

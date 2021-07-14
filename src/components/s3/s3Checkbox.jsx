@@ -20,10 +20,15 @@ const s3Params = {
 class S3Checkbox extends Component {
   constructor() {
     super();
+
+    let stateArray = "";
+    ExcelStore.excelFiles.forEach(function (entry) {
+      stateArray += entry.name + ", ";
+    });
+
     this.state = {
-      // excelFiles: [],
       fileNames: [],
-      labelValue: "",
+      labelValue: stateArray,
       fileList: [],
       checkedState: [],
       isCheckAll: false,
@@ -71,11 +76,9 @@ class S3Checkbox extends Component {
         checkedState: updatedCheckedState,
         fileNames: addName,
         isCheckAll: checker,
-        labelValue: addName.toString(),
       });
     } else {
       var newItems = this.state.fileNames.filter((item) => item !== params.Key);
-      // ExcelStore.excelFiles.filter(item => item.name !== params.Key);
       var newFiles = ExcelStore.excelFiles.filter(
         (item) => item.name !== params.Key
       );
@@ -86,8 +89,15 @@ class S3Checkbox extends Component {
         checkedState: updatedCheckedState,
         isCheckAll: false,
         fileNames: newItems,
-        // excelFiles: newFiles,
-        labelValue: newItems.toString(),
+      });
+
+      let stateArray = "";
+      ExcelStore.excelFiles.forEach(function (entry) {
+        stateArray += entry.name + ", ";
+      });
+
+      this.setState({
+        labelValue: stateArray,
       });
     }
   };
@@ -109,6 +119,7 @@ class S3Checkbox extends Component {
         };
         this.exportFromS3(params);
       }
+
       this.setState({
         fileNames: updatedFileNames,
       });
@@ -119,30 +130,40 @@ class S3Checkbox extends Component {
 
       this.setState({
         fileNames: updatedFileNames,
-        // excelFiles: [],
+      });
+
+      let stateArray = "";
+      ExcelStore.excelFiles.forEach(function (entry) {
+        stateArray += entry.name + ", ";
+      });
+
+      this.setState({
+        labelValue: stateArray,
       });
     }
 
     this.setState({
       isCheckAll: e.target.checked,
       checkedState: updatedCheckedState,
-      labelValue: updatedFileNames.toString(),
     });
   };
 
   exportFromS3 = async (params) => {
-    // var addFile = ExcelStore.excelFiles;
     s3.getObject(params, (err, data) => {
       if (data) {
-        let file = new Blob([data.Body], {
+        let file = new File([data.Body], params.Key, {
           type: data.ContentType,
         });
-        // addFile.push(file);
-        ExcelStore.excelFiles.push({
-          name: params.Key,
-          blob: file
+        ExcelStore.excelFiles.push(file);
+
+        let stateArray = "";
+        ExcelStore.excelFiles.forEach(function (entry) {
+          stateArray += entry.name + ", ";
         });
-        // this.setState({ excelFiles: addFile });
+
+        this.setState({
+          labelValue: stateArray,
+        });
       } else {
         console.log("Error: " + err);
       }
