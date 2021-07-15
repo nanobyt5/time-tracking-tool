@@ -69,7 +69,7 @@ const GROUP_METHODS = [
   { value: "sprint", label: "Sprint" },
 ];
 
-const INITIAL_GROUP_BY = "activity";
+const INITIAL_GROUP_BY = "tags";
 
 /**
  * Creates the time spent per activity page. It has states: db, minDate, maxDate, startDate, endDate,
