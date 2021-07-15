@@ -6,7 +6,7 @@ import DataGrid, {
   Column,
   Export,
   Grouping,
-  GroupItem,
+  GroupItem, GroupPanel, SearchPanel,
   Selection,
   Summary,
   TotalItem,
@@ -54,10 +54,15 @@ const COLUMNS = [
     toSort: false,
   },
   {
-    dataField: "hours",
+    dataField: "storyPoints",
     dataType: "number",
     toSort: false,
   },
+  {
+    dataField: "hours",
+    dataType: "number",
+    toSort: false,
+  }
 ];
 
 const GROUP_METHODS = [
@@ -176,6 +181,7 @@ function Time() {
           activity: entry["Activity"],
           hours: entry["Hours"],
           tags: entry["Tags"],
+          storyPoints: entry["Story Points"]
         });
       }
     });
@@ -349,8 +355,11 @@ function Time() {
       dataSource={data}
       showBorders={true}
       wordWrapEnabled={true}
+      allowColumnReordering={true}
       style={{ margin: 5 }}
     >
+      <GroupPanel visible={true} />
+      <SearchPanel visible={true} />
       <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
       <Selection mode={"single"} />
 
