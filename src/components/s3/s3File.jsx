@@ -62,9 +62,24 @@ class S3File extends Component {
 
   async exportFromS3(params) {
     s3.getObject(params, function (err, data) {
+      const convertJsonToCsv = (json) => {
+        let fields = Object.keys(json[0]);
+        const replacer = (key, value) => (value === null ? '' : value);
+        let csv = json.map(row => (
+            fields.map(field => (
+                JSON.stringify(row[field], replacer)
+            )).join(',')
+        ))
+        csv.unshift(fields.join(','));
+        csv = csv.join('\r\n');
+        return csv;
+      }
+
       if (data) {
+        let json = JSON.parse(data.Body.toString());
+        let csv = convertJsonToCsv(json);
         var filename = params.Key;
-        var blob = new Blob([data.Body], {
+        var blob = new Blob([csv], {
           type: "",
         });
         FileSaver.saveAs(blob, filename);
@@ -170,32 +185,6 @@ class S3File extends Component {
     };
     reader.readAsBinaryString(file);
   };
-
-  // handleOnUpload = () => {
-  //   if (this.state.selectedFile === null) {
-  //     this.setState({ labelValue: "No file selected." });
-  //   } else {
-  //     const params = {
-  //       Bucket: "time-tracking-storage",
-  //       Key: this.state.selectedFile.name,
-  //       ContentType: this.state.selectedFile.type,
-  //       Body: this.state.selectedFile,
-  //     };
-  //
-  //     if (
-  //       window.confirm("Are you sure you want to upload " + params.Key + "?")
-  //     ) {
-  //       this.uploadInS3(params);
-  //
-  //       this.setState({
-  //         labelValue: params.Key + " upload successfully.",
-  //         selectedFile: null,
-  //       });
-  //     } else {
-  //       this.setState({ labelValue: params.Key + " not uploaded." });
-  //     }
-  //   }
-  // };
 
   handleOnExport = () => {
     const params = {
