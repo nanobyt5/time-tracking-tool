@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { DualAxes } from "@ant-design/charts";
 import ExcelStore from "../stores/excelStore";
-import * as XLSX from "xlsx";
 import DataGrid, {
   Column,
   Editing,
@@ -239,68 +238,12 @@ function SprintVelocityChart() {
   };
 
   /**
-   * Converts the csv file to JSON format and used the data for the charts and table.
-   * credit: https://www.cluemediator.com/read-csv-file-in-react
-   */
-  const processData = (dataString) => {
-    const dataStringLines = dataString.split(/\r\n|\n/);
-    const headers = dataStringLines[0].split(
-      /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
-    );
-
-    const list = [];
-    for (let i = 1; i < dataStringLines.length; i++) {
-      const row = dataStringLines[i].split(
-        /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
-      );
-      if (headers && row.length === headers.length) {
-        const obj = {};
-        for (let j = 0; j < headers.length; j++) {
-          let d = row[j];
-          if (d.length > 0) {
-            if (d[0] === '"') d = d.substring(1, d.length - 1);
-            if (d[d.length - 1] === '"') d = d.substring(d.length - 2, 1);
-          }
-          if (headers[j]) {
-            obj[headers[j]] = d;
-          }
-        }
-
-        // remove the blank rows
-        if (Object.values(obj).filter((x) => x).length > 0) {
-          list.push(obj);
-        }
-      }
-    }
-
-    getData(list);
-  };
-
-  /**
-   * Handles the csv file uploaded.
-   * credit: https://www.cluemediator.com/read-csv-file-in-react
+   * Handles the data selected by the user to be shown in the page.
    */
   const handleFileUpload = () => {
-    //const file = e.target.files[0]; // To be removed ///////////////////
-    let file = new Blob();
-
-    if (ExcelStore.excelFiles.length > 0) {
-      file = ExcelStore.excelFiles[0];
-    }
-
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      /* Parse data */
-      const bStr = evt.target.result;
-      const wb = XLSX.read(bStr, { type: "binary" });
-      /* Get first worksheet */
-      const wsName = wb.SheetNames[0];
-      const ws = wb.Sheets[wsName];
-      /* Convert array of arrays */
-      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
-      processData(data);
-    };
-    reader.readAsBinaryString(file);
+    let content = [];
+    ExcelStore.excelFiles.forEach(json => content.push(JSON.parse(json['content'])));
+    getData(content.flat());
   };
 
   useEffect(() => {
@@ -368,16 +311,6 @@ function SprintVelocityChart() {
     },
     height: 600,
   };
-
-  // const UploadFileComponent = () => (
-  //     <div className= 'uploadFileComponent'>
-  //         <input
-  //             type="file"
-  //             accept=".csv,.xlsx,.xls"
-  //             onChange={handleFileUpload}
-  //         />
-  //     </div>
-  // );
 
   const titleComponent = () => (
     <div className="titleComponent">
