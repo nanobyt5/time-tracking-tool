@@ -151,10 +151,17 @@ class S3Checkbox extends Component {
   exportFromS3 = async (params) => {
     s3.getObject(params, (err, data) => {
       if (data) {
-        let file = new File([data.Body], params.Key, {
-          type: data.ContentType,
+        let content = data.Body.toString();
+
+        // ExcelStore.excelFiles.push(content)
+
+        // let file = new File([content], params.Key, {
+        //   type: data.ContentType,
+        // });
+        ExcelStore.excelFiles.push({
+          name: params.Key,
+          content: content
         });
-        ExcelStore.excelFiles.push(file);
 
         let stateArray = "";
         ExcelStore.excelFiles.forEach(function (entry) {

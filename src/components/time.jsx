@@ -94,57 +94,70 @@ function Time() {
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   const processData = (dataString) => {
-    if (!dataString) {
-      return;
-    }
-    const dataStringLines = dataString.split(/\r\n|\n/);
-    const headers = dataStringLines[0].split(
-      /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
-    );
-
-    const list = [];
+    // if (!dataString) {
+    //   return;
+    // }
+    // const dataStringLines = dataString.split(/\r\n|\n/);
+    // const headers = dataStringLines[0].split(
+    //   /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
+    // );
+    //
+    // const list = [];
+    // let tempStartDate = startDate;
+    // let tempEndDate = endDate;
+    // for (let i = 1; i < dataStringLines.length; i++) {
+    //   const row = dataStringLines[i].split(
+    //     /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
+    //   );
+    //   if (headers && row.length === headers.length) {
+    //     const obj = {};
+    //     for (let j = 0; j < headers.length; j++) {
+    //       let d = row[j];
+    //       if (d.length > 0) {
+    //         if (d[0] === '"') d = d.substring(1, d.length - 1);
+    //         if (d[d.length - 1] === '"') d = d.substring(d.length - 2, 1);
+    //       }
+    //       if (headers[j]) {
+    //         obj[headers[j]] = d;
+    //       }
+    //     }
+    //
+    //     // remove the blank rows
+    //     if (Object.values(obj).filter((x) => x).length > 0) {
+    //       let date = new Date(obj["Date"]);
+    //
+    //       if (date < tempStartDate) {
+    //         tempStartDate = date;
+    //       }
+    //
+    //       if (date > tempEndDate) {
+    //         tempEndDate = date;
+    //       }
+    //
+    //       list.push(obj);
+    //     }
+    //   }
+    // }
     let tempStartDate = startDate;
     let tempEndDate = endDate;
-    for (let i = 1; i < dataStringLines.length; i++) {
-      const row = dataStringLines[i].split(
-        /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
-      );
-      if (headers && row.length === headers.length) {
-        const obj = {};
-        for (let j = 0; j < headers.length; j++) {
-          let d = row[j];
-          if (d.length > 0) {
-            if (d[0] === '"') d = d.substring(1, d.length - 1);
-            if (d[d.length - 1] === '"') d = d.substring(d.length - 2, 1);
-          }
-          if (headers[j]) {
-            obj[headers[j]] = d;
-          }
-        }
 
-        // remove the blank rows
-        if (Object.values(obj).filter((x) => x).length > 0) {
-          let date = new Date(obj["Date"]);
-
-          if (date < tempStartDate) {
-            tempStartDate = date;
-          }
-
-          if (date > tempEndDate) {
-            tempEndDate = date;
-          }
-
-          list.push(obj);
-        }
+    dataString.forEach(entry => {
+      let date = new Date(entry["Date"]);
+      if (date < tempStartDate) {
+        tempStartDate = date;
       }
-    }
+
+      if (date > tempEndDate) {
+        tempEndDate = date;
+      }
+    })
 
     setMinDate(tempStartDate);
     setMaxDate(tempEndDate);
 
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
-    setDb(list);
+    setDb(dataString);
   };
 
   /**
@@ -152,26 +165,31 @@ function Time() {
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   const handleFileUpload = () => {
-    //const file = e.target.files[0]; // To be removed ///////////////////
-    let file= new Blob();
-
-    if (ExcelStore.excelFiles.length > 0) {
-      file = ExcelStore.excelFiles[0];
+    if (ExcelStore.excelFiles.length === 0) {
+      return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      /* Parse data */
-      const bStr = evt.target.result;
-      const wb = XLSX.read(bStr, { type: "binary" });
-      /* Get first worksheet */
-      const wsName = wb.SheetNames[0];
-      const ws = wb.Sheets[wsName];
-      /* Convert array of arrays */
-      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
-      processData(data);
-    };
-    reader.readAsBinaryString(file);
+    let content = [];
+    ExcelStore.excelFiles.forEach(json => content.push(JSON.parse(json['content'])));
+    processData(content.flat());
+
+    // if (ExcelStore.excelFiles.length > 0) {
+    //   file = ExcelStore.excelFiles[0];
+    // }
+    //
+    // const reader = new FileReader();
+    // reader.onload = (evt) => {
+    //   /* Parse data */
+    //   const bStr = evt.target.result;
+    //   const wb = XLSX.read(bStr, { type: "binary" });
+    //   /* Get first worksheet */
+    //   const wsName = wb.SheetNames[0];
+    //   const ws = wb.Sheets[wsName];
+    //   /* Convert array of arrays */
+    //   const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+    //   processData(data);
+    // };
+    // reader.readAsBinaryString(file);
   };
 
   useEffect(() => {

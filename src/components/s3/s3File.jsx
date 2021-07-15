@@ -4,7 +4,6 @@ import FileSaver from "file-saver";
 import DeleteFile from "./deleteFile";
 import UploadFile from "./uploadFile";
 import ExportFile from "./exportFile";
-import ExcelStore from "../../stores/excelStore";
 import * as XLSX from "xlsx";
 
 AWS.config.update({
@@ -20,6 +19,8 @@ const s3Params = {
   Delimiter: "",
   Prefix: "",
 };
+
+const CSV_FILE_ATTACHMENT = '.csv';
 
 class S3File extends Component {
   constructor() {
@@ -78,11 +79,11 @@ class S3File extends Component {
       if (data) {
         let json = JSON.parse(data.Body.toString());
         let csv = convertJsonToCsv(json);
-        var filename = params.Key;
-        var blob = new Blob([csv], {
+        const filename = params.Key;
+        let blob = new Blob([csv], {
           type: "",
         });
-        FileSaver.saveAs(blob, filename);
+        FileSaver.saveAs(blob, filename + CSV_FILE_ATTACHMENT);
       } else {
         console.log("Error: " + err);
       }
@@ -140,7 +141,7 @@ class S3File extends Component {
 
     const params = {
       Bucket: "time-tracking-storage",
-      Key: this.state.selectedFile.name.split('.csv', 1).join(''),
+      Key: this.state.selectedFile.name.split(CSV_FILE_ATTACHMENT, 1).join(''),
       ContentType: 'json',
       Body: JSON.stringify(jsonFile),
     };
@@ -217,8 +218,8 @@ class S3File extends Component {
         fileName: null,
       });
 
-      var newItems = this.state.listFiles.filter(
-        (item) => item.Key !== params.Key
+      let newItems = this.state.listFiles.filter(
+          (item) => item.Key !== params.Key
       );
       this.setState({
         listFiles: newItems,
