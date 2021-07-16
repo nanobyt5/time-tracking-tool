@@ -96,11 +96,16 @@ function Time() {
   /**
    * Process the merged data to get the relevant data for the time page.
    */
-  const processData = (dataString) => {
-    let tempStartDate = startDate;
-    let tempEndDate = endDate;
+  const processData = (content) => {
+    let tempStartDate = new Date(8640000000000000);
+    let tempEndDate = new Date(-8640000000000000);
 
-    dataString.forEach(entry => {
+    if (content.length === 0) {
+      tempStartDate = new Date();
+      tempEndDate = new Date();
+    }
+
+    content.forEach(entry => {
       let date = new Date(entry["Date"]);
       if (date < tempStartDate) {
         tempStartDate = date;
@@ -115,7 +120,7 @@ function Time() {
     setMaxDate(tempEndDate);
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
-    setDb(dataString);
+    setDb(content);
   };
 
   /**
