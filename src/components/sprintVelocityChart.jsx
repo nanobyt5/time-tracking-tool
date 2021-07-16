@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { DualAxes } from "@ant-design/charts";
-import ExcelStore from "../stores/excelStore";
+import StateStore from "../stores/stateStore";
 import DataGrid, {
   Column,
   Editing,
@@ -240,15 +240,17 @@ function SprintVelocityChart() {
   /**
    * Handles the data selected by the user to be shown in the page.
    */
-  const handleFileUpload = () => {
+  const processJsonToTable = () => {
     let content = [];
-    ExcelStore.excelFiles.forEach(json => content.push(JSON.parse(json['content'])));
+    StateStore.jsonFiles.forEach((json) =>
+      content.push(JSON.parse(json["content"]))
+    );
     getData(content.flat());
   };
 
   useEffect(() => {
-    handleFileUpload();
-  }, [ExcelStore.excelFiles.length]);
+    processJsonToTable();
+  }, [StateStore.jsonFiles.length]);
 
   /**
    * Calculates the total sprint velocity in each sprint.
