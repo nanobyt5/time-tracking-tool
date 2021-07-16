@@ -12,7 +12,7 @@ import DataGrid, {
   TotalItem,
 } from "devextreme-react/data-grid";
 
-import ExcelStore from "../stores/excelStore";
+import StateStore from "../stores/stateStore";
 
 import "../css/time.css";
 
@@ -105,7 +105,7 @@ function Time() {
       tempEndDate = new Date();
     }
 
-    content.forEach(entry => {
+    content.forEach((entry) => {
       let date = new Date(entry["Date"]);
       if (date < tempStartDate) {
         tempStartDate = date;
@@ -114,7 +114,7 @@ function Time() {
       if (date > tempEndDate) {
         tempEndDate = date;
       }
-    })
+    });
 
     setMinDate(tempStartDate);
     setMaxDate(tempEndDate);
@@ -126,15 +126,17 @@ function Time() {
   /**
    * Handles the data selected by the user to be shown in the page.
    */
-  const handleFileUpload = () => {
+  const processJsonToTable = () => {
     let content = [];
-    ExcelStore.excelFiles.forEach(json => content.push(JSON.parse(json['content'])));
+    StateStore.jsonFiles.forEach((json) =>
+      content.push(JSON.parse(json["content"]))
+    );
     processData(content.flat());
   };
 
   useEffect(() => {
-    handleFileUpload();
-  }, [ExcelStore.excelFiles.length]);
+    processJsonToTable();
+  }, [StateStore.jsonFiles.length]);
 
   /**
    * Checks the entry from db on whether it should be part of the data used.
