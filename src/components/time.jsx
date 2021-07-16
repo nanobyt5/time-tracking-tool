@@ -360,16 +360,17 @@ function Time() {
       dataSource={data}
       showBorders={true}
       wordWrapEnabled={true}
+      allowColumnReordering={true}
       style={{ margin: 5 }}
     >
       <SearchPanel visible={true} />
       <GroupPanel
           visible={true}
+          allowColumnDragging={false}
       />
       <Grouping
           autoExpandAll={true}
-          groupByThisColumn={groupBy}
-          contextMenuEnabled={true}
+          texts={{ groupByThisColumn: {groupBy} }}
           expandMode="rowClick"
       />
       <Selection mode={"single"} />
