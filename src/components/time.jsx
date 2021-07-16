@@ -355,12 +355,18 @@ function Time() {
       dataSource={data}
       showBorders={true}
       wordWrapEnabled={true}
-      allowColumnReordering={true}
       style={{ margin: 5 }}
     >
-      <GroupPanel visible={true} />
       <SearchPanel visible={true} />
-      <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
+      <GroupPanel
+          visible={true}
+      />
+      <Grouping
+          autoExpandAll={true}
+          groupByThisColumn={groupBy}
+          contextMenuEnabled={true}
+          expandMode="rowClick"
+      />
       <Selection mode={"single"} />
 
       {columns.map(({ toGroup, dataField, dataType }) =>
