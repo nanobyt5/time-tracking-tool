@@ -6,7 +6,7 @@ import DataGrid, {
   Column, ColumnChooser,
   Export,
   Grouping,
-  GroupItem, GroupPanel, SearchPanel,
+  GroupItem, SearchPanel,
   Selection,
   Summary,
   TotalItem,
@@ -364,9 +364,9 @@ function Time() {
       style={{ margin: 5 }}
     >
       <SearchPanel visible={true} />
-      <GroupPanel
-          visible={true}
-          allowColumnDragging={false}
+      <ColumnChooser
+          enabled={true}
+          mode="select"
       />
       <Grouping
           autoExpandAll={true}
@@ -374,10 +374,6 @@ function Time() {
           expandMode="rowClick"
       />
       <Selection mode={"single"} />
-      <ColumnChooser
-        enabled={true}
-        mode="select"
-      />
 
       {columns.map(({ toGroup, dataField, dataType }) =>
         toGroup ? (
