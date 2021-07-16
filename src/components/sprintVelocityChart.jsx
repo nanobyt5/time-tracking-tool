@@ -41,7 +41,7 @@ function SprintVelocityChart() {
       let totalStoryPoints = 0;
       let j = 0;
 
-      for (let name in currSprint) {
+      Object.keys(currSprint).forEach(name => {
         let currMember = currSprint[name];
         let hours = currMember["hours"];
         let storyPoints = currMember["storyPoints"];
@@ -58,7 +58,7 @@ function SprintVelocityChart() {
           storyPoints: storyPoints,
           velocity: velocity,
         });
-      }
+      })
 
       let totalVelocity = totalStoryPoints / (totalCapacity / HOURS_PER_DAY);
 
@@ -209,9 +209,9 @@ function SprintVelocityChart() {
     );
     let oldData = newTableData[index];
 
-    for (let key in edit) {
+    Object.keys(edit).forEach(key => {
       dataToChange[key] = edit[key];
-    }
+    })
 
     dataToChange["velocity"] =
       dataToChange["storyPoints"] / (dataToChange["capacity"] / HOURS_PER_DAY);
