@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { DatePicker, Select } from "antd";
 import { FormLabel, Grid } from "@material-ui/core";
 import DataGrid, {
-  Column,
+  Column, ColumnChooser,
   Export,
   Grouping,
   GroupItem, GroupPanel, SearchPanel,
@@ -374,6 +374,10 @@ function Time() {
           expandMode="rowClick"
       />
       <Selection mode={"single"} />
+      <ColumnChooser
+        enabled={true}
+        mode="select"
+      />
 
       {columns.map(({ toGroup, dataField, dataType }) =>
         toGroup ? (
