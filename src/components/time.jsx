@@ -26,42 +26,42 @@ const COLUMNS = [
   {
     dataField: "date",
     dataType: "date",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "sprint",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "team",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "member",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "activity",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "tags",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "storyPoints",
     dataType: "number",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "hours",
     dataType: "number",
-    toSort: false,
+    toGroup: false,
   }
 ];
 
