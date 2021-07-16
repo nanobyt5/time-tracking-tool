@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import FileSaver from "file-saver";
 import { observer } from "mobx-react";
 import { DualAxes } from "@ant-design/charts";
 import ExcelStore from "../stores/excelStore";
@@ -12,6 +13,7 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 
 import "../css/sprintVelocityChart.css";
+import {Button, Form, Input, Modal} from "antd";
 
 const HOURS_PER_DAY = 8;
 
@@ -24,6 +26,20 @@ function SprintVelocityChart() {
   const [barData, setBarData] = useState([]);
   const [lineData, setLineData] = useState([]);
   const [tableData, setTableData] = useState([]);
+  const [exportButtonVisibility, setExportButtonVisibility] = useState(false);
+
+  const convertJsonToCsv = (json) => {
+    let fields = Object.keys(json[0]);
+    const replacer = (key, value) => (value === null ? '' : value);
+    let csv = json.map(row => (
+        fields.map(field => (
+            JSON.stringify(row[field], replacer)
+        )).join(',')
+    ))
+    csv.unshift(fields.join(','));
+    csv = csv.join('\r\n');
+    return csv;
+  }
 
   /**
    * Takes in a sorted array of the sprints and data from `getData` and use them to populate the
@@ -237,6 +253,20 @@ function SprintVelocityChart() {
     updateTable(dataToChange, edit);
   };
 
+  const onExport = (values) => {
+    if (tableData.length === 0) {
+      return;
+    }
+
+    let csvToExport = convertJsonToCsv(tableData);
+    let exportFileName = values["exportFileName"] + '.csv';
+    let blob = new Blob([csvToExport], {
+      type: "",
+    })
+    FileSaver.saveAs(blob, exportFileName);
+    setExportButtonVisibility(false);
+  }
+
   /**
    * Handles the data selected by the user to be shown in the page.
    */
@@ -312,9 +342,64 @@ function SprintVelocityChart() {
     height: 600,
   };
 
+  const ExportForm = () => {
+    const [form] = Form.useForm();
+    return (
+        <Modal
+          visible={exportButtonVisibility}
+          title="Exporting the sprint velocity file"
+          okText="Export"
+          cancelText="Cancel"
+          onCancel={() => setExportButtonVisibility(false)}
+          onOk={() => {
+            form
+                .validateFields()
+                .then((values) => {
+                  form.resetFields();
+                  onExport(values);
+                })
+                .catch((error) => {
+                  console.log("Export Failed:", error);
+                })
+          }}
+        >
+          <Form
+            form={form}
+            layout="vertical"
+            name="export_form"
+          >
+            <Form.Item
+              name="exportFileName"
+              label="Name of Export File"
+              rules={[
+                {
+                  required: true,
+                  message: "Please input the name of the export file!",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+          </Form>
+        </Modal>
+    )
+  }
+
+  const exportButtonComponent = () => (
+      <div>
+        <Button
+            onClick={() => {setExportButtonVisibility(true)}}
+        >
+          Export
+        </Button>
+        {ExportForm()}
+      </div>
+  )
+
   const titleComponent = () => (
     <div className="titleComponent">
       <h2>Sprint Velocity</h2>
+      {exportButtonComponent()}
     </div>
   );
 

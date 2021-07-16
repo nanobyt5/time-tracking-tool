@@ -1,9 +1,10 @@
 .titleComponent {
     margin: 5px;
-    width: 60%;
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding-right: 10px;
 }
 
 h2 {
