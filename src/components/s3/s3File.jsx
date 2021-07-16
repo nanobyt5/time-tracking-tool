@@ -4,6 +4,7 @@ import FileSaver from "file-saver";
 import DeleteFile from "./deleteFile";
 import UploadFile from "./uploadFile";
 import ExportFile from "./exportFile";
+import * as XLSX from "xlsx";
 
 AWS.config.update({
   accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
@@ -18,6 +19,8 @@ const s3Params = {
   Delimiter: "",
   Prefix: "",
 };
+
+const CSV_FILE_ATTACHMENT = '.csv';
 
 class S3File extends Component {
   constructor() {
@@ -60,12 +63,27 @@ class S3File extends Component {
 
   async exportFromS3(params) {
     s3.getObject(params, function (err, data) {
+      const convertJsonToCsv = (json) => {
+        let fields = Object.keys(json[0]);
+        const replacer = (key, value) => (value === null ? '' : value);
+        let csv = json.map(row => (
+            fields.map(field => (
+                JSON.stringify(row[field], replacer)
+            )).join(',')
+        ))
+        csv.unshift(fields.join(','));
+        csv = csv.join('\r\n');
+        return csv;
+      }
+
       if (data) {
-        var filename = params.Key;
-        var blob = new Blob([data.Body], {
+        let json = JSON.parse(data.Body.toString());
+        let csv = convertJsonToCsv(json);
+        const filename = params.Key;
+        let blob = new Blob([csv], {
           type: "",
         });
-        FileSaver.saveAs(blob, filename);
+        FileSaver.saveAs(blob, filename + CSV_FILE_ATTACHMENT);
       } else {
         console.log("Error: " + err);
       }
@@ -82,30 +100,91 @@ class S3File extends Component {
     });
   }
 
-  handleOnUpload = () => {
-    if (this.state.selectedFile === null) {
-      this.setState({ labelValue: "No file selected." });
-    } else {
-      const params = {
-        Bucket: "time-tracking-storage",
-        Key: this.state.selectedFile.name,
-        ContentType: this.state.selectedFile.type,
-        Body: this.state.selectedFile,
-      };
+  /**
+   * Converts csv file to JSON and use the data for db, min, max, start, end dates.
+   * credit: https://www.cluemediator.com/read-csv-file-in-react
+   */
+  convertCsvToJson = (dataString) => {
+    if (!dataString) {
+      return;
+    }
 
-      if (
-        window.confirm("Are you sure you want to upload " + params.Key + "?")
-      ) {
-        this.uploadInS3(params);
+    const dataStringLines = dataString.split(/\r\n|\n/);
+    const headers = dataStringLines[0].split(
+        /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
+    );
+    const jsonFile = [];
 
-        this.setState({
-          labelValue: params.Key + " upload successfully.",
-          selectedFile: null,
-        });
-      } else {
-        this.setState({ labelValue: params.Key + " not uploaded." });
+    for (let i = 1; i < dataStringLines.length; i++) {
+      const row = dataStringLines[i].split(
+          /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
+      );
+      if (headers && row.length === headers.length) {
+        const obj = {};
+        for (let j = 0; j < headers.length; j++) {
+          let d = row[j];
+          if (d.length > 0) {
+            if (d[0] === '"') d = d.substring(1, d.length - 1);
+            if (d[d.length - 1] === '"') d = d.substring(d.length - 2, 1);
+          }
+          if (headers[j]) {
+            obj[headers[j]] = d;
+          }
+        }
+
+        // remove the blank rows
+        if (Object.values(obj).filter((x) => x).length > 0) {
+          jsonFile.push(obj);
+        }
       }
     }
+
+    const params = {
+      Bucket: "time-tracking-storage",
+      Key: this.state.selectedFile.name.split(CSV_FILE_ATTACHMENT, 1).join(''),
+      ContentType: 'json',
+      Body: JSON.stringify(jsonFile),
+    };
+
+    if (
+        window.confirm("Are you sure you want to upload " + params.Key + "?")
+    ) {
+      this.uploadInS3(params).then(() => {console.log('success')});
+
+      this.setState({
+        labelValue: params.Key + " upload successfully.",
+        selectedFile: null,
+      });
+    } else {
+      this.setState({ labelValue: params.Key + " not uploaded." });
+    }
+  };
+
+  /**
+   * Handles the csv file uploaded.
+   * credit: https://www.cluemediator.com/read-csv-file-in-react
+   */
+  handleOnUpload = () => {
+    const file = this.state.selectedFile;
+
+    if (file === null) {
+      this.setState({ labelValue: "No file selected." });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      /* Parse data */
+      const bStr = evt.target.result;
+      const wb = XLSX.read(bStr, { type: "binary" });
+      /* Get first worksheet */
+      const wsName = wb.SheetNames[0];
+      const ws = wb.Sheets[wsName];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+      this.convertCsvToJson(data);
+    };
+    reader.readAsBinaryString(file);
   };
 
   handleOnExport = () => {
@@ -139,8 +218,8 @@ class S3File extends Component {
         fileName: null,
       });
 
-      var newItems = this.state.listFiles.filter(
-        (item) => item.Key !== params.Key
+      let newItems = this.state.listFiles.filter(
+          (item) => item.Key !== params.Key
       );
       this.setState({
         listFiles: newItems,
