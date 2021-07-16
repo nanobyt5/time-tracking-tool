@@ -73,3 +73,7 @@ h6 {
 .mainBody {
   padding: 2% 3%;
 }
+
+label {
+  white-space: pre-wrap;
+}
