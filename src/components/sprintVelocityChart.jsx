@@ -15,8 +15,23 @@ import DataGrid, {
 import "../css/sprintVelocityChart.css";
 import {Button, Form, Input, Modal} from "antd";
 import * as XLSX from "xlsx";
+import AWS from "aws-sdk";
 
 const HOURS_PER_DAY = 8;
+
+AWS.config.update({
+  accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
+  secretAccessKey: "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",
+  region: "ap-southeast-1",
+});
+
+const s3 = new AWS.S3();
+
+const s3SprintParams = {
+  Bucket: "time-tracking-storage",
+  Delimiter: "",
+  Prefix: "sprint",
+};
 
 /**
  * Creates the sprint velocity page. It has states: sprints, data for bar, line charts, and table.
@@ -264,6 +279,7 @@ function SprintVelocityChart() {
       type: "",
     })
     FileSaver.saveAs(blob, exportFileName);
+    uploadToS3(values["exportFileName"]);
     setExportButtonVisibility(false);
   }
 
@@ -424,6 +440,59 @@ function SprintVelocityChart() {
     getChartDataFromImport(importData, sprints);
   }
 
+  const onImport = (file) => {
+    let importedFile = file.target.files[0];
+
+    if (!importedFile) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      /* Parse data */
+      const bStr = evt.target.result;
+      const wb = XLSX.read(bStr, { type: "binary" });
+      /* Get first worksheet */
+      const wsName = wb.SheetNames[0];
+      const ws = wb.Sheets[wsName];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+      convertCsvToJson(data);
+    };
+    reader.readAsBinaryString(importedFile);
+  }
+
+  const uploadToS3 = (name) => {
+    if (tableData.length === 0) {
+      return;
+    }
+
+    const params = {
+      Bucket: "time-tracking-storage",
+      Key: 'sprint/' + name,
+      ContentType: 'json',
+      Body: JSON.stringify(tableData)
+    }
+
+    s3.putObject(params, (err, data) => {
+      if (data) {
+        listS3Sprints();
+      } else {
+        console.log("Error:", err);
+      }
+    })
+  }
+
+  const listS3Sprints = () => {
+    s3.listObjectsV2(s3SprintParams, (err, data) => {
+      if (err) {
+        console.log("Error:", err);
+      } else {
+        console.log('data:', data.Contents);
+      }
+    })
+  }
+
   /**
    * Config used for bar and line charts.
    */
@@ -454,28 +523,6 @@ function SprintVelocityChart() {
     },
     height: 600,
   };
-
-  const onImport = (file) => {
-    let importedFile = file.target.files[0];
-
-    if (!importedFile) {
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      /* Parse data */
-      const bStr = evt.target.result;
-      const wb = XLSX.read(bStr, { type: "binary" });
-      /* Get first worksheet */
-      const wsName = wb.SheetNames[0];
-      const ws = wb.Sheets[wsName];
-      /* Convert array of arrays */
-      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
-      convertCsvToJson(data);
-    };
-    reader.readAsBinaryString(importedFile);
-  }
 
   const ExportForm = () => {
     const [form] = Form.useForm();
