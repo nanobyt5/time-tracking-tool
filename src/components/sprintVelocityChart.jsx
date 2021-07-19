@@ -13,7 +13,8 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 
 import "../css/sprintVelocityChart.css";
-import {Button, Form, Input, Modal} from "antd";
+import {Button, Form, Input, Modal, Upload} from "antd";
+import * as XLSX from "xlsx";
 
 const HOURS_PER_DAY = 8;
 
@@ -148,7 +149,6 @@ function SprintVelocityChart() {
 
     sprints.sort();
     setSprints(sprints);
-
     populateData(lookUp, sprints);
   };
 
@@ -313,6 +313,120 @@ function SprintVelocityChart() {
     }
   };
 
+  const updateChartWithImportData = (importedData, sprints) => {
+    let newBarData = [];
+    let newLineData = [];
+
+    sprints.forEach(sprint => {
+      let currSprint = importedData[sprint];
+      let capacity = currSprint["capacity"];
+      let storyPoints = currSprint["storyPoints"];
+      let velocity = storyPoints / (capacity / HOURS_PER_DAY);
+
+      newBarData.push(
+          {
+            sprint: sprint,
+            value: capacity,
+            type: "Capacity"
+          },
+          {
+            sprint: sprint,
+            value: storyPoints,
+            type: "Completed Story Points"
+          }
+      );
+
+      newLineData.push(
+          {
+            sprint: sprint,
+            velocity: velocity
+          }
+      );
+    });
+
+    console.log('new bar data:', newBarData);
+    console.log('new line data:', newLineData);
+    setBarData(newBarData);
+    setLineData(newLineData);
+  }
+
+  const getChartDataFromImport = (importedData, sprints) => {
+    let lookUp = {};
+
+    importedData.forEach(entry => {
+      let sprint = entry["sprint"];
+      let capacity = entry["capacity"];
+      let storyPoints = entry["storyPoints"];
+
+      if (!(sprint in lookUp)) {
+        lookUp[sprint] = {
+          capacity: capacity,
+          storyPoints: storyPoints
+        };
+      } else {
+        let currSprint = lookUp[sprint];
+        currSprint["capacity"] += capacity;
+        currSprint["storyPoints"] += storyPoints;
+      }
+    });
+
+    updateChartWithImportData(lookUp, sprints);
+  }
+
+  const convertCsvToJson = (dataString) => {
+    if (!dataString) {
+      return;
+    }
+
+    const dataStringLines = dataString.split(/\r\n|\n/);
+    const headers = dataStringLines[0].split(
+        /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
+    );
+    const importData = [];
+    let sprintLookUp = {};
+    let sprints = [];
+
+    for (let i = 1; i < dataStringLines.length; i++) {
+      const row = dataStringLines[i].split(
+          /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
+      );
+      if (headers && row.length === headers.length) {
+        const obj = {};
+        for (let j = 0; j < headers.length; j++) {
+          let d = row[j];
+          if (d.length > 0) {
+            if (d[0] === '"') d = d.substring(1, d.length - 1);
+            if (d[d.length - 1] === '"') d = d.substring(d.length - 2, 1);
+          }
+          if (headers[j]) {
+            obj[headers[j]] = d;
+          }
+        }
+
+        // remove the blank rows
+        if (Object.values(obj).filter((x) => x).length > 0) {
+          let sprint = obj["sprint"];
+          if (!(sprint in sprintLookUp)) {
+            sprints.push(sprint);
+            sprintLookUp[sprint] = 1;
+          }
+
+          obj["capacity"] = parseFloat(obj["capacity"]);
+          obj["storyPoints"] = parseFloat(obj["storyPoints"]);
+          obj["velocity"] = parseFloat(obj["velocity"]);
+
+          importData.push(obj);
+        }
+      }
+    }
+    sprints.sort();
+
+    console.log('new table data:', importData);
+    setSprints(sprints);
+    setTableData(importData);
+    getChartDataFromImport(importData, sprints);
+  }
+
   /**
    * Config used for bar and line charts.
    */
@@ -343,6 +457,28 @@ function SprintVelocityChart() {
     },
     height: 600,
   };
+
+  const onImport = (file) => {
+    let importedFile = file.target.files[0];
+
+    if (!importedFile) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      /* Parse data */
+      const bStr = evt.target.result;
+      const wb = XLSX.read(bStr, { type: "binary" });
+      /* Get first worksheet */
+      const wsName = wb.SheetNames[0];
+      const ws = wb.Sheets[wsName];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+      convertCsvToJson(data);
+    };
+    reader.readAsBinaryString(importedFile);
+  }
 
   const ExportForm = () => {
     const [form] = Form.useForm();
@@ -387,21 +523,30 @@ function SprintVelocityChart() {
     )
   }
 
-  const exportButtonComponent = () => (
+  const importExportComponents = () => (
       <div>
-        <Button
-            onClick={() => {setExportButtonVisibility(true)}}
-        >
-          Export
-        </Button>
-        {ExportForm()}
+        <div className="importButton">
+          <Input
+              type="file"
+              size="small"
+              onChange={onImport}
+          />
+        </div>
+        <div className="exportButton">
+          <Button
+              onClick={() => {setExportButtonVisibility(true)}}
+          >
+            Export
+          </Button>
+          {ExportForm()}
+        </div>
       </div>
   )
 
   const titleComponent = () => (
     <div className="titleComponent">
       <h2>Sprint Velocity</h2>
-      {exportButtonComponent()}
+      {importExportComponents()}
     </div>
   );
 
