@@ -13,7 +13,7 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 
 import "../css/sprintVelocityChart.css";
-import {Button, Form, Input, Modal, Upload} from "antd";
+import {Button, Form, Input, Modal} from "antd";
 import * as XLSX from "xlsx";
 
 const HOURS_PER_DAY = 8;
@@ -344,8 +344,6 @@ function SprintVelocityChart() {
       );
     });
 
-    console.log('new bar data:', newBarData);
-    console.log('new line data:', newLineData);
     setBarData(newBarData);
     setLineData(newLineData);
   }
@@ -421,7 +419,6 @@ function SprintVelocityChart() {
     }
     sprints.sort();
 
-    console.log('new table data:', importData);
     setSprints(sprints);
     setTableData(importData);
     getChartDataFromImport(importData, sprints);
@@ -524,7 +521,7 @@ function SprintVelocityChart() {
   }
 
   const importExportComponents = () => (
-      <div>
+      <div className="importAndExport">
         <div className="importButton">
           <Input
               type="file"
@@ -534,6 +531,7 @@ function SprintVelocityChart() {
         </div>
         <div className="exportButton">
           <Button
+              size="medium"
               onClick={() => {setExportButtonVisibility(true)}}
           >
             Export

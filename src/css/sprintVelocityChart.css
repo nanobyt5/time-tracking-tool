@@ -7,15 +7,25 @@
     padding-right: 3px;
 }
 
+.importAndExport {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    justify-self: flex-end;
+    max-width: 60%;
+}
+
+.importButton {
+    width: 200px;
+    padding-right: 5px;
+    display: flex;
+    justify-self: center;
+}
+
 h2 {
     display: flex;
     justify-content: flex-start;
     margin-right: 5px;
-}
-
-.uploadFileComponent {
-    display: flex;
-    justify-content: flex-end;
 }
 
 .tableAndChart {
