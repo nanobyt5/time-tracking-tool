@@ -7,13 +7,13 @@ import DataGrid, {
   Column,
   Editing,
   Grouping,
-  GroupItem,
+  GroupItem, Scrolling,
   Selection,
   Summary,
 } from "devextreme-react/data-grid";
 
 import "../css/sprintVelocityChart.css";
-import {Button, Form, Input, Modal} from "antd";
+import {Button, Form, Input, Modal, Table} from "antd";
 import * as XLSX from "xlsx";
 import AWS from "aws-sdk";
 
@@ -33,6 +33,13 @@ const s3SprintParams = {
   Prefix: "sprint",
 };
 
+const S3_COLUMNS = [
+  {
+    title: 'File Name',
+    dataIndex: 'key'
+  }
+]
+
 /**
  * Creates the sprint velocity page. It has states: sprints, data for bar, line charts, and table.
  * The data are initially empty arrays.
@@ -42,6 +49,7 @@ function SprintVelocityChart() {
   const [barData, setBarData] = useState([]);
   const [lineData, setLineData] = useState([]);
   const [tableData, setTableData] = useState([]);
+  const [s3Data, setS3Data] = useState([]);
   const [exportButtonVisibility, setExportButtonVisibility] = useState(false);
 
   const convertJsonToCsv = (json) => {
@@ -387,79 +395,29 @@ function SprintVelocityChart() {
     updateChartWithImportData(lookUp, sprints);
   }
 
-  const convertCsvToJson = (dataString) => {
-    if (!dataString) {
-      return;
-    }
-
-    const dataStringLines = dataString.split(/\r\n|\n/);
-    const headers = dataStringLines[0].split(
-        /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
-    );
-    const importData = [];
-    let sprintLookUp = {};
+  const onImport = (s3ImportedFiles) => {
+    let sprintsLookUp = {};
     let sprints = [];
+    let id = 1;
 
-    for (let i = 1; i < dataStringLines.length; i++) {
-      const row = dataStringLines[i].split(
-          /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
-      );
-      if (headers && row.length === headers.length) {
-        const obj = {};
-        for (let j = 0; j < headers.length; j++) {
-          let d = row[j];
-          if (d.length > 0) {
-            if (d[0] === '"') d = d.substring(1, d.length - 1);
-            if (d[d.length - 1] === '"') d = d.substring(d.length - 2, 1);
-          }
-          if (headers[j]) {
-            obj[headers[j]] = d;
-          }
-        }
-
-        // remove the blank rows
-        if (Object.values(obj).filter((x) => x).length > 0) {
-          let sprint = obj["sprint"];
-          if (!(sprint in sprintLookUp)) {
-            sprints.push(sprint);
-            sprintLookUp[sprint] = 1;
-          }
-
-          obj["capacity"] = parseFloat(obj["capacity"]);
-          obj["storyPoints"] = parseFloat(obj["storyPoints"]);
-          obj["velocity"] = parseFloat(obj["velocity"]);
-
-          importData.push(obj);
-        }
+    s3ImportedFiles.forEach(file => {
+      let sprint = file["sprint"];
+      if (!(sprint in sprintsLookUp)) {
+        sprints.push(sprint);
+        sprintsLookUp[sprint] = 1;
       }
-    }
+
+      file["id"] = id++;
+      file["capacity"] = parseFloat(file["capacity"]);
+      file["storyPoints"] = parseFloat(file["storyPoints"]);
+      file["velocity"] = parseFloat(file["velocity"]);
+    })
+
     sprints.sort();
 
     setSprints(sprints);
-    setTableData(importData);
-    getChartDataFromImport(importData, sprints);
-  }
-
-  const onImport = (file) => {
-    let importedFile = file.target.files[0];
-
-    if (!importedFile) {
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      /* Parse data */
-      const bStr = evt.target.result;
-      const wb = XLSX.read(bStr, { type: "binary" });
-      /* Get first worksheet */
-      const wsName = wb.SheetNames[0];
-      const ws = wb.Sheets[wsName];
-      /* Convert array of arrays */
-      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
-      convertCsvToJson(data);
-    };
-    reader.readAsBinaryString(importedFile);
+    setTableData(s3ImportedFiles);
+    getChartDataFromImport(s3ImportedFiles, sprints);
   }
 
   const uploadToS3 = (name) => {
@@ -487,11 +445,65 @@ function SprintVelocityChart() {
     s3.listObjectsV2(s3SprintParams, (err, data) => {
       if (err) {
         console.log("Error:", err);
+        setS3Data([]);
       } else {
-        console.log('data:', data.Contents);
+        let s3Data = data.Contents.map(content => { return { key: content["Key"] }});
+        setS3Data(s3Data);
       }
     })
   }
+
+  const onS3RowChange = (selectedRowKeys) => {
+    let s3TableData = [];
+    let s3Promises = [];
+    selectedRowKeys.forEach(key => {
+      const params = {
+        Bucket: "time-tracking-storage",
+        Key: key,
+      };
+
+      s3Promises.push(new Promise((resolve, reject) => {
+        s3.getObject(params, (err, data) => {
+          if (data) {
+            let content = JSON.parse(data.Body.toString());
+            resolve(content);
+          } else {
+            console.log("Err", err);
+          }
+        })
+      }))
+    })
+
+    Promise.all(s3Promises)
+        .then((content) => {
+          s3TableData.push(content);
+        })
+        .then(() => {
+          onImport(s3TableData.flat(2));
+        })
+  }
+
+  const s3RowSelection = {
+    onChange: (selectedRowKeys) => {
+      onS3RowChange(selectedRowKeys)
+    },
+  }
+
+  useEffect(() => {
+    listS3Sprints();
+  }, []);
+
+  const s3TableComponent = () => (
+      <div>
+        <Table
+          rowSelection={{
+            ...s3RowSelection
+          }}
+          columns={ S3_COLUMNS }
+          dataSource={ s3Data }
+        />
+      </div>
+  )
 
   /**
    * Config used for bar and line charts.
@@ -603,7 +615,12 @@ function SprintVelocityChart() {
 
   const dataGridComponent = () => (
     <div className="dataGrid">
-      <DataGrid id="gridContainer" dataSource={tableData} showBorders={true}>
+      <DataGrid
+          id="gridContainer"
+          dataSource={tableData}
+          showBorders={true}
+          height="50vh"
+      >
         <Selection mode="single" />
         <Grouping autoExpandAll={true} />
         <Editing
@@ -611,6 +628,7 @@ function SprintVelocityChart() {
           onChangesChange={updateChange}
           allowUpdating={true}
         />
+        <Scrolling mode="virtual" />
 
         <Column dataField="sprint" caption="Sprint" groupIndex={0} />
         <Column dataField="name" />
@@ -649,6 +667,7 @@ function SprintVelocityChart() {
 
   return (
     <div>
+      {s3TableComponent()}
       {titleComponent()}
       <div className="tableAndChart">
         {dataGridComponent()}

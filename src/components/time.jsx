@@ -375,7 +375,7 @@ function Time() {
           texts={{ groupByThisColumn: {groupBy} }}
           expandMode="rowClick"
       />
-      <Selection mode={"single"} />
+      <Selection mode="single" />
       <Scrolling mode="virtual" />
 
       {columns.map(({ toGroup, dataField, dataType }) =>
