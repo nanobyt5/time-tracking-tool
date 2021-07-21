@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import FileSaver from "file-saver";
 import { observer } from "mobx-react";
 import { DualAxes } from "@ant-design/charts";
 import StateStore from "../stores/stateStore";
@@ -13,8 +12,7 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 
 import "../css/sprintVelocityChart.css";
-import {Button, Form, Input, Modal, Table} from "antd";
-import * as XLSX from "xlsx";
+import {Button, Drawer, Form, Input, Modal, Table} from "antd";
 import AWS from "aws-sdk";
 
 const HOURS_PER_DAY = 8;
@@ -51,20 +49,7 @@ function SprintVelocityChart() {
   const [tableData, setTableData] = useState([]);
   const [s3Data, setS3Data] = useState([]);
   const [exportButtonVisibility, setExportButtonVisibility] = useState(false);
-
-  const convertJsonToCsv = (json) => {
-    let fields = Object.keys(json[0]);
-    const replacer = (key, value) => (value === null ? '' : value);
-    let csv = json.map(row => (
-        fields.map(field => (
-            JSON.stringify(row[field], replacer)
-        )).join(',')
-    ))
-    csv.unshift(fields.join(','));
-    csv = csv.join('\r\n');
-    return csv;
-  }
-
+  const [importDrawerVisibility, setImportDrawerVisibility] = useState(false);
   /**
    * Takes in a sorted array of the sprints and data from `getData` and use them to populate the
    * data for the bar, line, and table to be shown.
@@ -276,17 +261,11 @@ function SprintVelocityChart() {
     updateTable(dataToChange, edit);
   };
 
-  const onExport = (values) => {
+  const onSave = (values) => {
     if (tableData.length === 0) {
       return;
     }
 
-    let csvToExport = convertJsonToCsv(tableData);
-    let exportFileName = values["exportFileName"] + '.csv';
-    let blob = new Blob([csvToExport], {
-      type: "",
-    })
-    FileSaver.saveAs(blob, exportFileName);
     uploadToS3(values["exportFileName"]);
     setExportButtonVisibility(false);
   }
@@ -427,7 +406,7 @@ function SprintVelocityChart() {
 
     const params = {
       Bucket: "time-tracking-storage",
-      Key: 'sprint/' + name,
+      Key: 'sprint/' + name + '_' + new Date().toISOString(),
       ContentType: 'json',
       Body: JSON.stringify(tableData)
     }
@@ -462,7 +441,7 @@ function SprintVelocityChart() {
         Key: key,
       };
 
-      s3Promises.push(new Promise((resolve, reject) => {
+      s3Promises.push(new Promise((resolve) => {
         s3.getObject(params, (err, data) => {
           if (data) {
             let content = JSON.parse(data.Body.toString());
@@ -536,13 +515,13 @@ function SprintVelocityChart() {
     height: 600,
   };
 
-  const ExportForm = () => {
+  const SaveToS3Form = () => {
     const [form] = Form.useForm();
     return (
         <Modal
           visible={exportButtonVisibility}
-          title="Exporting the sprint velocity file"
-          okText="Export"
+          title="Saving the sprint velocity file"
+          okText="Save"
           cancelText="Cancel"
           onCancel={() => setExportButtonVisibility(false)}
           onOk={() => {
@@ -550,10 +529,10 @@ function SprintVelocityChart() {
                 .validateFields()
                 .then((values) => {
                   form.resetFields();
-                  onExport(values);
+                  onSave(values);
                 })
                 .catch((error) => {
-                  console.log("Export Failed:", error);
+                  console.log("Save Failed:", error);
                 })
           }}
         >
@@ -564,11 +543,11 @@ function SprintVelocityChart() {
           >
             <Form.Item
               name="exportFileName"
-              label="Name of Export File"
+              label="File Name"
               rules={[
                 {
                   required: true,
-                  message: "Please input the name of the export file!",
+                  message: "Please input the name of the file!",
                 },
               ]}
             >
@@ -582,20 +561,30 @@ function SprintVelocityChart() {
   const importExportComponents = () => (
       <div className="importAndExport">
         <div className="importButton">
-          <Input
-              type="file"
-              size="small"
-              onChange={onImport}
-          />
+          <Button
+            size="medium"
+            onClick={ () => {setImportDrawerVisibility(true)} }
+          >
+            Import
+          </Button>
+          <Drawer
+            title="Import From S3"
+            placement="right"
+            closable={false}
+            onClose={ () => {setImportDrawerVisibility(false)} }
+            visible={importDrawerVisibility}
+          >
+            {s3TableComponent()}
+          </Drawer>
         </div>
-        <div className="exportButton">
+        <div className="saveButton">
           <Button
               size="medium"
               onClick={() => {setExportButtonVisibility(true)}}
           >
-            Export
+            Save
           </Button>
-          {ExportForm()}
+          {SaveToS3Form()}
         </div>
       </div>
   )
@@ -667,7 +656,6 @@ function SprintVelocityChart() {
 
   return (
     <div>
-      {s3TableComponent()}
       {titleComponent()}
       <div className="tableAndChart">
         {dataGridComponent()}
