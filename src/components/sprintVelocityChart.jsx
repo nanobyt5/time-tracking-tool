@@ -48,6 +48,7 @@ function SprintVelocityChart() {
   const [lineData, setLineData] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [s3Data, setS3Data] = useState([]);
+  const [selectedData, setSelectedData] = useState([]);
   const [exportButtonVisibility, setExportButtonVisibility] = useState(false);
   const [importDrawerVisibility, setImportDrawerVisibility] = useState(false);
   /**
@@ -281,10 +282,6 @@ function SprintVelocityChart() {
     getData(content.flat());
   };
 
-  useEffect(() => {
-    processJsonToTable();
-  }, [StateStore.jsonFiles.length]);
-
   /**
    * Calculates the total sprint velocity in each sprint.
    */
@@ -426,7 +423,13 @@ function SprintVelocityChart() {
         console.log("Error:", err);
         setS3Data([]);
       } else {
-        let s3Data = data.Contents.map(content => { return { key: content["Key"] }});
+        let id = 1;
+        let s3Data = data.Contents.map(content => {
+          return {
+            id: id++,
+            key: content["Key"]
+          }
+        });
         setS3Data(s3Data);
       }
     })
@@ -462,15 +465,95 @@ function SprintVelocityChart() {
         })
   }
 
+  const importPromiseFromS3 = (key) => {
+    const params = {
+      Bucket: "time-tracking-storage",
+      Key: key,
+    };
+
+    return new Promise((resolve) => {
+      s3.getObject(params, (err, data) => {
+        if (data) {
+          let content = JSON.parse(data.Body.toString());
+          resolve({
+            key: key,
+            content: content
+          });
+        } else {
+          console.log("Err", err);
+        }
+      })
+    });
+  }
+
+  const onS3RowSelect = (selectedRow, isSelected) => {
+    const key = selectedRow["key"];
+    let newSelectedData = [...selectedData];
+    let newTableData = [...tableData];
+
+    if (isSelected) {
+      let promise = importPromiseFromS3(key);
+
+      promise
+          .then((file) => {
+            newSelectedData.push(file)
+            setSelectedData(newSelectedData);
+
+            newTableData.push(file["content"]);
+            onImport(newTableData.flat(2));
+          })
+    } else {
+      newSelectedData = newSelectedData.filter(item => item["key"] !== key);
+      setSelectedData(newSelectedData);
+      newTableData = newSelectedData.map(item => item["content"]).flat(2);
+      onImport(newTableData);
+    }
+  }
+
+  const onS3RowSelectAll = (isSelected, changedRows) => {
+    let newSelectedData = [];
+    let newTableData = [];
+
+    if (isSelected) {
+      let promises = [];
+      changedRows.forEach(({ key: key }) => {
+        promises.push(importPromiseFromS3(key))
+      })
+
+      Promise.all(promises)
+          .then(files => {
+            newSelectedData.push(files);
+
+            files.forEach(({content: content}) => {
+              newTableData.push(content)
+            })
+          })
+          .then(() => {
+              setSelectedData(newSelectedData);
+              onImport(newTableData.flat(2));
+          })
+    } else {
+      setSelectedData(newSelectedData);
+      onImport([]);
+    }
+  }
+
   const s3RowSelection = {
-    onChange: (selectedRowKeys) => {
-      onS3RowChange(selectedRowKeys)
+    onSelect: (selectedRow, isSelected) => {
+      onS3RowSelect(selectedRow, isSelected);
     },
+    onSelectAll: (isSelected, selectedRows, changedRows) => {
+      onS3RowSelectAll(isSelected, changedRows);
+    }
   }
 
   useEffect(() => {
     listS3Sprints();
   }, []);
+
+  useEffect(() => {
+    processJsonToTable();
+  }, [StateStore.jsonFiles.length]);
 
   const s3TableComponent = () => (
       <div>
