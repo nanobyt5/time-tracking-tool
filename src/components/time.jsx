@@ -59,7 +59,7 @@ const COLUMNS = [
     toGroup: false,
   },
   {
-    dataField: "planned",
+    dataField: "unplanned",
     dataType: "string",
     toGroup: false,
   },
@@ -77,7 +77,7 @@ const GROUP_METHODS = [
   { value: "team", label: "Team" },
   { value: "member", label: "Member" },
   { value: "sprint", label: "Sprint" },
-  { value: "planned", label: "Planned" }
+  { value: "unplanned", label: "Unplanned" }
 ];
 
 const INITIAL_GROUP_BY = "tags";
@@ -103,7 +103,6 @@ function Time() {
    * Process the merged data to get the relevant data for the time page.
    */
   const processData = (content) => {
-    console.log('db:', content);
     let tempStartDate = new Date(8640000000000000);
     let tempEndDate = new Date(-8640000000000000);
 
@@ -196,7 +195,7 @@ function Time() {
           hours: entry["Hours"],
           tags: entry["Tags"],
           storyPoints: entry["Story Points"],
-          planned: entry["Unplanned"]
+          unplanned: entry["Unplanned"]
         });
       }
     });
@@ -407,14 +406,14 @@ function Time() {
         <GroupItem
           column="hours"
           summaryType="sum"
-          displayFormat="Total Hours: {0}"
+          displayFormat="{0}hrs"
           valueFormat="#.###"
-          showInGroupFooter={true}
+          alignByColumn={true}
         />
         <TotalItem
           column="hours"
           summaryType="sum"
-          displayFormat="Total: {0}"
+          displayFormat="Total: {0}hrs"
           valueFormat="#.###"
         />
       </Summary>
