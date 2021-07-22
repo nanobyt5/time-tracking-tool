@@ -622,7 +622,7 @@ function SprintVelocityChart() {
           <Drawer
             title="Import From S3"
             placement="right"
-            width="500"
+            width="450"
             closable={false}
             onClose={ () => {setImportDrawerVisibility(false)} }
             visible={importDrawerVisibility}
