@@ -22,6 +22,8 @@ const s3Params = {
 
 const CSV_FILE_ATTACHMENT = '.csv';
 
+const TIME_PAGE_PREFIX = 'time/';
+
 class S3File extends Component {
   constructor() {
     super();
@@ -103,7 +105,7 @@ class S3File extends Component {
   async uploadToS3(jsonFile) {
     const params = {
       Bucket: "time-tracking-storage",
-      Key: this.state.selectedFile.name.split(CSV_FILE_ATTACHMENT, 1).join(''),
+      Key: TIME_PAGE_PREFIX + this.state.selectedFile.name.split(CSV_FILE_ATTACHMENT, 1).join(''),
       ContentType: 'json',
       Body: JSON.stringify(jsonFile),
     };

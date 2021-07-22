@@ -434,37 +434,6 @@ function SprintVelocityChart() {
       }
     })
   }
-
-  const onS3RowChange = (selectedRowKeys) => {
-    let s3TableData = [];
-    let s3Promises = [];
-    selectedRowKeys.forEach(key => {
-      const params = {
-        Bucket: "time-tracking-storage",
-        Key: key,
-      };
-
-      s3Promises.push(new Promise((resolve) => {
-        s3.getObject(params, (err, data) => {
-          if (data) {
-            let content = JSON.parse(data.Body.toString());
-            resolve(content);
-          } else {
-            console.log("Err", err);
-          }
-        })
-      }))
-    })
-
-    Promise.all(s3Promises)
-        .then((content) => {
-          s3TableData.push(content);
-        })
-        .then(() => {
-          onImport(s3TableData.flat(2));
-        })
-  }
-
   const importPromiseFromS3 = (key) => {
     const params = {
       Bucket: "time-tracking-storage",
@@ -544,7 +513,7 @@ function SprintVelocityChart() {
     },
     onSelectAll: (isSelected, selectedRows, changedRows) => {
       onS3RowSelectAll(isSelected, changedRows);
-    }
+    },
   }
 
   useEffect(() => {
@@ -653,6 +622,7 @@ function SprintVelocityChart() {
           <Drawer
             title="Import From S3"
             placement="right"
+            width="500"
             closable={false}
             onClose={ () => {setImportDrawerVisibility(false)} }
             visible={importDrawerVisibility}
