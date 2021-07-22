@@ -3,10 +3,10 @@ import { observer } from "mobx-react";
 import { DatePicker, Select } from "antd";
 import { FormLabel, Grid } from "@material-ui/core";
 import DataGrid, {
-  Column,
+  Column, ColumnChooser,
   Export,
   Grouping,
-  GroupItem,
+  GroupItem, Scrolling, SearchPanel,
   Selection,
   Summary,
   TotalItem,
@@ -26,38 +26,43 @@ const COLUMNS = [
   {
     dataField: "date",
     dataType: "date",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "sprint",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "team",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "member",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "activity",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
   },
   {
     dataField: "tags",
     dataType: "string",
-    toSort: false,
+    toGroup: false,
+  },
+  {
+    dataField: "storyPoints",
+    dataType: "number",
+    toGroup: false,
   },
   {
     dataField: "hours",
     dataType: "number",
-    toSort: false,
-  },
+    toGroup: false,
+  }
 ];
 
 const GROUP_METHODS = [
@@ -91,11 +96,16 @@ function Time() {
   /**
    * Process the merged data to get the relevant data for the time page.
    */
-  const processData = (dataString) => {
-    let tempStartDate = startDate;
-    let tempEndDate = endDate;
+  const processData = (content) => {
+    let tempStartDate = new Date(8640000000000000);
+    let tempEndDate = new Date(-8640000000000000);
 
-    dataString.forEach((entry) => {
+    if (content.length === 0) {
+      tempStartDate = new Date();
+      tempEndDate = new Date();
+    }
+
+    content.forEach((entry) => {
       let date = new Date(entry["Date"]);
       if (date < tempStartDate) {
         tempStartDate = date;
@@ -110,7 +120,7 @@ function Time() {
     setMaxDate(tempEndDate);
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
-    setDb(dataString);
+    setDb(content);
   };
 
   /**
@@ -178,6 +188,7 @@ function Time() {
           activity: entry["Activity"],
           hours: entry["Hours"],
           tags: entry["Tags"],
+          storyPoints: entry["Story Points"]
         });
       }
     });
@@ -351,10 +362,21 @@ function Time() {
       dataSource={data}
       showBorders={true}
       wordWrapEnabled={true}
+      allowColumnReordering={true}
       style={{ margin: 5 }}
     >
-      <Grouping autoExpandAll={true} texts={{ groupByThisColumn: groupBy }} />
-      <Selection mode={"single"} />
+      <SearchPanel visible={true} />
+      <ColumnChooser
+          enabled={true}
+          mode="select"
+      />
+      <Grouping
+          autoExpandAll={true}
+          texts={{ groupByThisColumn: {groupBy} }}
+          expandMode="rowClick"
+      />
+      <Selection mode="single" />
+      <Scrolling mode="virtual" />
 
       {columns.map(({ toGroup, dataField, dataType }) =>
         toGroup ? (

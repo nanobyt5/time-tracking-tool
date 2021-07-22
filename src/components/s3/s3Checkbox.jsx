@@ -14,7 +14,7 @@ const s3 = new AWS.S3();
 const s3Params = {
   Bucket: "time-tracking-storage",
   Delimiter: "",
-  Prefix: "",
+  Prefix: "time/",
 };
 
 class S3Checkbox extends Component {

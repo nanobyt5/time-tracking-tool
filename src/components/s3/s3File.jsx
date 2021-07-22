@@ -22,6 +22,8 @@ const s3Params = {
 
 const CSV_FILE_ATTACHMENT = '.csv';
 
+const TIME_PAGE_PREFIX = 'time/';
+
 class S3File extends Component {
   constructor() {
     super();
@@ -100,6 +102,28 @@ class S3File extends Component {
     });
   }
 
+  async uploadToS3(jsonFile) {
+    const params = {
+      Bucket: "time-tracking-storage",
+      Key: TIME_PAGE_PREFIX + this.state.selectedFile.name.split(CSV_FILE_ATTACHMENT, 1).join(''),
+      ContentType: 'json',
+      Body: JSON.stringify(jsonFile),
+    };
+
+    if (
+        window.confirm("Are you sure you want to upload " + params.Key + "?")
+    ) {
+      this.uploadInS3(params).then(() => {console.log('success')});
+
+      this.setState({
+        labelValue: params.Key + " upload successfully.",
+        selectedFile: null,
+      });
+    } else {
+      this.setState({ labelValue: params.Key + " not uploaded." });
+    }
+  }
+
   /**
    * Converts csv file to JSON and use the data for db, min, max, start, end dates.
    * credit: https://www.cluemediator.com/read-csv-file-in-react
@@ -139,25 +163,7 @@ class S3File extends Component {
       }
     }
 
-    const params = {
-      Bucket: "time-tracking-storage",
-      Key: this.state.selectedFile.name.split(CSV_FILE_ATTACHMENT, 1).join(''),
-      ContentType: 'json',
-      Body: JSON.stringify(jsonFile),
-    };
-
-    if (
-        window.confirm("Are you sure you want to upload " + params.Key + "?")
-    ) {
-      this.uploadInS3(params).then(() => {console.log('success')});
-
-      this.setState({
-        labelValue: params.Key + " upload successfully.",
-        selectedFile: null,
-      });
-    } else {
-      this.setState({ labelValue: params.Key + " not uploaded." });
-    }
+    this.uploadToS3(jsonFile).then(() => "Upload successful!");
   };
 
   /**

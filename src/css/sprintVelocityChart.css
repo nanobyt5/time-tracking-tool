@@ -1,20 +1,30 @@
 .titleComponent {
-    margin: 5px;
-    width: 60%;
+    margin-bottom: 5px;
+    width: 50%;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding-right: 3px;
+}
+
+.importAndExport {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    justify-self: flex-end;
+    max-width: 60%;
+}
+
+.importButton {
+    padding-right: 5px;
+    display: flex;
+    justify-self: center;
 }
 
 h2 {
     display: flex;
     justify-content: flex-start;
     margin-right: 5px;
-}
-
-.uploadFileComponent {
-    display: flex;
-    justify-content: flex-end;
 }
 
 .tableAndChart {
@@ -36,6 +46,11 @@ h2 {
 }
 
 @media screen and (max-width: 1265px) {
+    .titleComponent {
+        width: 100%;
+        padding: 5px;
+    }
+
     .tableAndChart {
         display: contents;
     }
