@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { observer } from "mobx-react";
-import AWS from "aws-sdk";
-import ExcelStore from "../../stores/excelStore";
+import AWS, { ConnectContactLens } from "aws-sdk";
+import StateStore from "../../stores/stateStore";
 
 AWS.config.update({
   accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
@@ -14,7 +14,7 @@ const s3 = new AWS.S3();
 const s3Params = {
   Bucket: "time-tracking-storage",
   Delimiter: "",
-  Prefix: "",
+  Prefix: "time/",
 };
 
 class S3Checkbox extends Component {
@@ -22,15 +22,14 @@ class S3Checkbox extends Component {
     super();
 
     let stateArray = "";
-    ExcelStore.excelFiles.forEach(function (entry) {
-      stateArray += entry.name + ", ";
+    StateStore.jsonFiles.forEach(function (entry) {
+      stateArray += entry.name + "\n";
     });
 
     this.state = {
       fileNames: [],
       labelValue: stateArray,
       fileList: [],
-      checkedState: [],
       isCheckAll: false,
     };
   }
@@ -44,9 +43,21 @@ class S3Checkbox extends Component {
       if (err) {
         console.log(err, err.stack);
       } else {
+        let checkAll = false;
+
+        if (StateStore.checkboxState.length > 0) {
+          checkAll = StateStore.checkboxState.every((item) => {
+            return item === true;
+          });
+        } else if (StateStore.checkboxState.length === 0) {
+          StateStore.checkboxState = new Array(data.Contents.length).fill(
+            false
+          );
+        }
+
         this.setState({
           fileList: data.Contents,
-          checkedState: new Array(data.Contents.length).fill(false),
+          isCheckAll: checkAll,
         });
       }
     });
@@ -58,7 +69,7 @@ class S3Checkbox extends Component {
       Key: e.target.value,
     };
 
-    const updatedCheckedState = this.state.checkedState.map((item, index) =>
+    const updatedCheckedState = StateStore.checkboxState.map((item, index) =>
       `custom-checkbox-${index}` === e.target.id ? !item : item
     );
 
@@ -72,28 +83,29 @@ class S3Checkbox extends Component {
         return item === true;
       });
 
+      StateStore.checkboxState = updatedCheckedState;
+
       this.setState({
-        checkedState: updatedCheckedState,
         fileNames: addName,
         isCheckAll: checker,
       });
     } else {
       var newItems = this.state.fileNames.filter((item) => item !== params.Key);
-      var newFiles = ExcelStore.excelFiles.filter(
+      var newFiles = StateStore.jsonFiles.filter(
         (item) => item.name !== params.Key
       );
 
-      ExcelStore.excelFiles = newFiles;
+      StateStore.jsonFiles = newFiles;
+      StateStore.checkboxState = updatedCheckedState;
 
       this.setState({
-        checkedState: updatedCheckedState,
         isCheckAll: false,
         fileNames: newItems,
       });
 
       let stateArray = "";
-      ExcelStore.excelFiles.forEach(function (entry) {
-        stateArray += entry.name + ", ";
+      StateStore.jsonFiles.forEach(function (entry) {
+        stateArray += entry.name + "\n";
       });
 
       this.setState({
@@ -105,6 +117,7 @@ class S3Checkbox extends Component {
   handleSelectAll = (e) => {
     var updatedCheckedState = new Array(this.state.fileList.length);
     var updatedFileNames = [];
+    StateStore.jsonFiles = [];
 
     if (e.target.checked === true) {
       updatedCheckedState = updatedCheckedState.fill(true);
@@ -112,6 +125,7 @@ class S3Checkbox extends Component {
       this.state.fileList.forEach(function (item) {
         updatedFileNames.push(item.Key);
       });
+
       for (const file of updatedFileNames) {
         const params = {
           Bucket: "time-tracking-storage",
@@ -126,25 +140,18 @@ class S3Checkbox extends Component {
     } else {
       updatedCheckedState = updatedCheckedState.fill(false);
 
-      ExcelStore.excelFiles = [];
-
       this.setState({
         fileNames: updatedFileNames,
       });
 
-      let stateArray = "";
-      ExcelStore.excelFiles.forEach(function (entry) {
-        stateArray += entry.name + ", ";
-      });
-
       this.setState({
-        labelValue: stateArray,
+        labelValue: "",
       });
     }
+    StateStore.checkboxState = updatedCheckedState;
 
     this.setState({
       isCheckAll: e.target.checked,
-      checkedState: updatedCheckedState,
     });
   };
 
@@ -153,23 +160,23 @@ class S3Checkbox extends Component {
       if (data) {
         let content = data.Body.toString();
 
-        // ExcelStore.excelFiles.push(content)
+        // ExcelStore.jsonFiles.push(content)
 
         // let file = new File([content], params.Key, {
         //   type: data.ContentType,
         // });
-        ExcelStore.excelFiles.push({
+        StateStore.jsonFiles.push({
           name: params.Key,
-          content: content
+          content: content,
         });
 
-        let stateArray = "";
-        ExcelStore.excelFiles.forEach(function (entry) {
-          stateArray += entry.name + ", ";
+        let stateString = "";
+        StateStore.jsonFiles.forEach(function (entry) {
+          stateString += entry.name + "\n";
         });
 
         this.setState({
-          labelValue: stateArray,
+          labelValue: stateString,
         });
       } else {
         console.log("Error: " + err);
@@ -198,7 +205,7 @@ class S3Checkbox extends Component {
                 id={`custom-checkbox-${index}`}
                 name="checkFiles"
                 value={name.Key}
-                checked={this.state.checkedState[index]}
+                checked={StateStore.checkboxState[index]}
                 onChange={this.handleOnListChange.bind(this)}
               />
               &nbsp;

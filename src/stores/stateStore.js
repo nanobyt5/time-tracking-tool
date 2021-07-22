@@ -1,14 +1,15 @@
 import { extendObservable, configure } from 'mobx';
 
-class ExcelStore {
+class StateStore {
     constructor() {
         configure({
             enforceActions: "never"
         })
         extendObservable(this, {
-            excelFiles: []
+            jsonFiles: [],
+            checkboxState: []
         })
     }
 }
 
-export default new ExcelStore();
+export default new StateStore();
