@@ -73,10 +73,10 @@ const COLUMNS = [
 const GROUP_METHODS = [
   { value: "", label: "All" },
   { value: "activity", label: "Activity" },
-  { value: "tags", label: "Tags" },
-  { value: "team", label: "Team" },
   { value: "member", label: "Member" },
   { value: "sprint", label: "Sprint" },
+  { value: "tags", label: "Tags" },
+  { value: "team", label: "Team" },
   { value: "unplanned", label: "Unplanned" }
 ];
 
