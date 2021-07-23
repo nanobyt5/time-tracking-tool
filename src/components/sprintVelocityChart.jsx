@@ -313,7 +313,7 @@ function SprintVelocityChart() {
         break;
 
       default:
-        console.log("Error found:", options);
+        break;
     }
   };
 

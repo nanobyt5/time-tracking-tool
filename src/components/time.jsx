@@ -59,7 +59,7 @@ const COLUMNS = [
     toGroup: false,
   },
   {
-    dataField: "unplanned",
+    dataField: "planned",
     dataType: "string",
     toGroup: false,
   },
@@ -77,7 +77,7 @@ const GROUP_METHODS = [
   { value: "sprint", label: "Sprint" },
   { value: "tags", label: "Tags" },
   { value: "team", label: "Team" },
-  { value: "unplanned", label: "Unplanned" }
+  { value: "planned", label: "Planned" }
 ];
 
 const INITIAL_GROUP_BY = "tags";
@@ -90,6 +90,10 @@ function Time() {
   const [db, setDb] = useState([]);
   const [minDate, setMinDate] = useState(new Date());
   const [maxDate, setMaxDate] = useState(new Date());
+  const [allTeams, setAllTeams] = useState([]);
+  const [allMembers, setAllMembers] = useState([]);
+  const [allActivities, setAllActivities] = useState([]);
+  const [allTags, setAllTags] = useState([]);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [teamsFilter, setTeamsFilter] = useState([]);
@@ -98,6 +102,52 @@ function Time() {
   const [tagsFilter, setTagsFilter] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
   const [columns, setColumns] = useState(COLUMNS);
+
+  /**
+   * Gets all distinct entries based on the toGet field.
+   */
+  const getAllFromDb = (toGet, db) => {
+    const lookUp = {};
+    const toGets = [];
+
+    db.forEach((entry) => {
+      const entryElement = entry[toGet];
+
+      if (!(entryElement in lookUp)) {
+        if (entryElement !== "") {
+          toGets.push(entryElement);
+          lookUp[entryElement] = 1;
+        }
+      }
+    });
+
+    return toGets.sort();
+  };
+
+  /**
+   * Gets all distinct tags from db.
+   */
+  const getAllTags = (db) => {
+    const lookUp = {};
+    const tags = [];
+
+    db.forEach((entry) => {
+      const tagsFromEntry = entry["Tags"];
+      tagsFromEntry.split(",").forEach((tag) => {
+        tag = tag.trim();
+        if (tag === "") {
+          return;
+        }
+
+        if (!(tag in lookUp)) {
+          tags.push(tag);
+          lookUp[tag] = 1;
+        }
+      });
+    });
+
+    return tags.sort();
+  };
 
   /**
    * Process the merged data to get the relevant data for the time page.
@@ -127,6 +177,10 @@ function Time() {
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
     setDb(content);
+    setAllActivities(getAllFromDb("Activity", content));
+    setAllMembers(getAllFromDb("Member", content));
+    setAllTags(getAllTags(content));
+    setAllTeams(getAllFromDb("Team", content));
   };
 
   /**
@@ -191,7 +245,7 @@ function Time() {
           hours: entry["Hours"],
           tags: entry["Tags"],
           storyPoints: entry["Story Points"],
-          unplanned: entry["Unplanned"]
+          planned: entry["Unplanned"] === "No" ? "Yes" : "No"
         });
       }
     });
@@ -248,62 +302,11 @@ function Time() {
   };
 
   /**
-   * Gets all distinct entries based on the toGet field.
-   */
-  const getAllFromDb = (toGet) => {
-    const lookUp = {};
-    const toGets = [];
-
-    db.forEach((entry) => {
-      const entryElement = entry[toGet];
-
-      if (!(entryElement in lookUp)) {
-        if (entryElement !== "") {
-          toGets.push(entryElement);
-          lookUp[entryElement] = 1;
-        }
-      }
-    });
-
-    return toGets.sort();
-  };
-
-  /**
-   * Gets all distinct tags from db.
-   */
-  const getAllTags = () => {
-    const lookUp = {};
-    const tags = [];
-
-    db.forEach((entry) => {
-      const tagsFromEntry = entry["Tags"];
-      tagsFromEntry.split(",").forEach((tag) => {
-        tag = tag.trim();
-        if (tag === "") {
-          return;
-        }
-
-        if (!(tag in lookUp)) {
-          tags.push(tag);
-          lookUp[tag] = 1;
-        }
-      });
-    });
-
-    return tags.sort();
-  };
-
-  /**
    * Checks whether the date inputted is in between the min and max dates.
    */
   const checkDate = (date) => {
     return date < moment(minDate) || date > moment(maxDate);
   };
-
-  const allTeams = getAllFromDb("Team");
-  const allMembers = getAllFromDb("Member");
-  const allActivities = getAllFromDb("Activity");
-  const allTags = getAllTags();
 
   useEffect(() => {
     processJsonToTable();
