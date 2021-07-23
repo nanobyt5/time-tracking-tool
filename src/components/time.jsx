@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-import { DatePicker, Select } from "antd";
+import {Button, DatePicker, Drawer, Select} from "antd";
 import { FormLabel, Grid } from "@material-ui/core";
 import DataGrid, {
   Column, ColumnChooser,
@@ -11,6 +11,7 @@ import DataGrid, {
   Summary,
   TotalItem,
 } from "devextreme-react/data-grid";
+import S3FileCheckbox from "../components/s3/s3Checkbox.jsx";
 
 import StateStore from "../stores/stateStore";
 
@@ -102,6 +103,7 @@ function Time() {
   const [tagsFilter, setTagsFilter] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
   const [columns, setColumns] = useState(COLUMNS);
+  const [importDrawerVisibility, setImportDrawerVisibility] = useState(false);
 
   /**
    * Gets all distinct entries based on the toGet field.
@@ -356,6 +358,27 @@ function Time() {
     </div>
   );
 
+  const importComponent = () => (
+    <div className="importButton">
+      <Button
+        size="medium"
+        onClick={ () => {setImportDrawerVisibility(true)} }
+      >
+        Import
+      </Button>
+      <Drawer
+        title="Import From S3"
+        placement="right"
+        width="450"
+        closable={false}
+        onClose={ () => {setImportDrawerVisibility(false)} }
+        visible={ importDrawerVisibility }
+      >
+        <S3FileCheckbox />
+      </Drawer>
+    </div>
+  )
+
   const datePickerRow = () => (
     <div className="datePickerRow">
       <RangePicker
@@ -427,6 +450,7 @@ function Time() {
 
   const firstRowComponent = () => (
     <Grid container className="firstRow">
+      {importComponent()}
       {datePickerRow()}
       {selectSingleComponent(
         "Group By:",

@@ -6,7 +6,7 @@ function Time() {
     return (
         <div>
             <TimeComponent />
-            <S3FileCheckbox />
+            {/*<S3FileCheckbox />*/}
         </div>
     );
 }
