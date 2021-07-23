@@ -477,6 +477,9 @@ function Time() {
 
   return (
     <div>
+      <div className="titleComponent">
+        <h2>Time Per "{groupBy}"</h2>
+      </div>
       <Grid container justify={"space-evenly"}>
         <div className="tableWithForms">
           {firstRowComponent()}
