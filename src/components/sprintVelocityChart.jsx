@@ -310,6 +310,10 @@ function SprintVelocityChart() {
         let finalStoryPoints = options.totalValue.storyPoints;
         let finalCapacity = options.totalValue.capacity / HOURS_PER_DAY;
         options.totalValue = finalStoryPoints / finalCapacity;
+        break;
+
+      default:
+        console.log("Error found:", options);
     }
   };
 
@@ -485,7 +489,7 @@ function SprintVelocityChart() {
 
     if (isSelected) {
       let promises = [];
-      changedRows.forEach(({ key: key }) => {
+      changedRows.forEach(({ key }) => {
         promises.push(importPromiseFromS3(key))
       })
 
@@ -493,7 +497,7 @@ function SprintVelocityChart() {
           .then(files => {
             newSelectedData.push(files);
 
-            files.forEach(({content: content}) => {
+            files.forEach(({ content }) => {
               newTableData.push(content)
             })
           })

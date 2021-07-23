@@ -92,10 +92,10 @@ function Time() {
   const [maxDate, setMaxDate] = useState(new Date());
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [team, setTeam] = useState([]);
-  const [member, setMember] = useState([]);
-  const [activity, setActivity] = useState([]);
-  const [tags, setTags] = useState([]);
+  const [teamsFilter, setTeamsFilter] = useState([]);
+  const [membersFilter, setMembersFilter] = useState([]);
+  const [activitiesFilter, setActivitiesFilter] = useState([]);
+  const [tagsFilter, setTagsFilter] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
   const [columns, setColumns] = useState(COLUMNS);
 
@@ -140,10 +140,6 @@ function Time() {
     processData(content.flat());
   };
 
-  useEffect(() => {
-    processJsonToTable();
-  }, [StateStore.jsonFiles.length]);
-
   /**
    * Checks the entry from db on whether it should be part of the data used.
    */
@@ -158,22 +154,22 @@ function Time() {
       return false;
     }
 
-    let dateFilter = date <= endDate && date >= startDate;
-    let teamFilter = team.length === 0 || team.includes(entryTeam);
-    let userFilter = member.length === 0 || member.includes(user);
-    let activityFilter =
-      activity.length === 0 || activity.includes(entryActivity);
-    let tagsFilter = tags.length === 0;
+    let isDateAccepted = date <= endDate && date >= startDate;
+    let isTeamAccepted = teamsFilter.length === 0 || teamsFilter.includes(entryTeam);
+    let isMemberAccepted = membersFilter.length === 0 || membersFilter.includes(user);
+    let isActivityAccepted =
+      activitiesFilter.length === 0 || activitiesFilter.includes(entryActivity);
+    let areTagsAccepted = tagsFilter.length === 0;
 
     for (let t of entryTags) {
-      if (tags.includes(t.trim())) {
-        tagsFilter = true;
+      if (tagsFilter.includes(t.trim())) {
+        areTagsAccepted = true;
         break;
       }
     }
 
     return (
-      dateFilter && activityFilter && tagsFilter && userFilter && teamFilter
+      isDateAccepted && isActivityAccepted && areTagsAccepted && isMemberAccepted && isTeamAccepted
     );
   };
 
@@ -208,21 +204,21 @@ function Time() {
    * Updates filters with the new teams.
    */
   const changeTeam = (newTeams) => {
-    setTeam(newTeams);
+    setTeamsFilter(newTeams);
   };
 
   /**
    * Updates filters with the new team members.
    */
   const changeMember = (newUsers) => {
-    setMember(newUsers);
+    setMembersFilter(newUsers);
   };
 
   /**
    * Updates filters with the new activities.
    */
   const changeActivities = (newActivities) => {
-    setActivity(newActivities);
+    setActivitiesFilter(newActivities);
   };
 
   /**
@@ -241,7 +237,7 @@ function Time() {
    * Updates filters with the new tags.
    */
   const changeTags = (newTags) => {
-    setTags(newTags);
+    setTagsFilter(newTags);
   };
 
   /**
@@ -308,6 +304,10 @@ function Time() {
   const allMembers = getAllFromDb("Member");
   const allActivities = getAllFromDb("Activity");
   const allTags = getAllTags();
+
+  useEffect(() => {
+    processJsonToTable();
+  }, [StateStore.jsonFiles.length]);
 
   useEffect(() => {
     const newCols = [...columns];
@@ -436,15 +436,15 @@ function Time() {
 
   const secondRowComponent = () => (
     <Grid container justify={"space-between"} className="secondRow">
-      {selectMultiComponent("Team:", team, allTeams, changeTeam)}
-      {selectMultiComponent("Member:", member, allMembers, changeMember)}
+      {selectMultiComponent("Team:", teamsFilter, allTeams, changeTeam)}
+      {selectMultiComponent("Member:", membersFilter, allMembers, changeMember)}
       {selectMultiComponent(
         "Activity:",
-        activity,
+        activitiesFilter,
         allActivities,
         changeActivities
       )}
-      {selectMultiComponent("Tags:", tags, allTags, changeTags)}
+      {selectMultiComponent("Tags:", tagsFilter, allTags, changeTags)}
     </Grid>
   );
 

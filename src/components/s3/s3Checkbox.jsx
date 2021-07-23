@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { observer } from "mobx-react";
-import AWS, { ConnectContactLens } from "aws-sdk";
+import AWS from "aws-sdk";
 import StateStore from "../../stores/stateStore";
 
 AWS.config.update({
