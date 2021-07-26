@@ -310,6 +310,10 @@ function SprintVelocityChart() {
         let finalStoryPoints = options.totalValue.storyPoints;
         let finalCapacity = options.totalValue.capacity / HOURS_PER_DAY;
         options.totalValue = finalStoryPoints / finalCapacity;
+        break;
+
+      default:
+        break;
     }
   };
 
@@ -434,6 +438,7 @@ function SprintVelocityChart() {
       }
     })
   }
+
   const importPromiseFromS3 = (key) => {
     const params = {
       Bucket: "time-tracking-storage",
@@ -485,7 +490,7 @@ function SprintVelocityChart() {
 
     if (isSelected) {
       let promises = [];
-      changedRows.forEach(({ key: key }) => {
+      changedRows.forEach(({ key }) => {
         promises.push(importPromiseFromS3(key))
       })
 
@@ -493,7 +498,7 @@ function SprintVelocityChart() {
           .then(files => {
             newSelectedData.push(files);
 
-            files.forEach(({content: content}) => {
+            files.forEach(({ content }) => {
               newTableData.push(content)
             })
           })
@@ -514,6 +519,7 @@ function SprintVelocityChart() {
     onSelectAll: (isSelected, selectedRows, changedRows) => {
       onS3RowSelectAll(isSelected, changedRows);
     },
+    // selectedRowKeys: ["sprint/19-23July_2021-07-22T02:53:38.030Z"]
   }
 
   useEffect(() => {
@@ -622,7 +628,7 @@ function SprintVelocityChart() {
           <Drawer
             title="Import From S3"
             placement="right"
-            width="500"
+            width="450"
             closable={false}
             onClose={ () => {setImportDrawerVisibility(false)} }
             visible={importDrawerVisibility}

@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Column, Pie} from "@ant-design/charts";
 import {Radio} from "antd";
 
@@ -16,15 +16,14 @@ const INITIAL_CHART_TYPE = "donut";
  * the initial state of donut.
  */
 function TimeChart(props) {
-    const db = props.data;
-    const groupBy = props.groupBy;
+    const [groupBy, setGroupBy] = useState("");
+    const [chartData, setChartData] = useState([]);
     const [chartType, setChartType] = useState(INITIAL_CHART_TYPE);
-    let data = [];
 
     /**
      * Gets the chart data from the db to be used for the time per activity charts.
      */
-    const getChartData = () => {
+    const getChartData = (db, groupBy) => {
         if (!groupBy) {
             return;
         }
@@ -46,14 +45,15 @@ function TimeChart(props) {
 
         labels.sort();
 
+        let chartData = [];
         labels.forEach(label => {
-            data.push({
+            chartData.push({
                 type: label,
                 value: lookUp[label]
             });
         })
+        setChartData(chartData);
     }
-    getChartData();
 
     /**
      * Capitalises the first letter of the word given.
@@ -62,12 +62,19 @@ function TimeChart(props) {
         return word.slice(0, 1).toUpperCase() + word.slice(1, word.length)
     };
 
+    useEffect(() => {
+        let newDb = props["data"];
+        let newGroupBy = props["groupBy"];
+        setGroupBy(newGroupBy);
+        getChartData(newDb, newGroupBy);
+    }, [props])
+
     /**
      * Gets the config for the bar chart.
      */
     const getColConfig = () => (
         {
-            data: data,
+            data: chartData,
             xField: 'type',
             yField: 'value',
             label: {
@@ -97,7 +104,7 @@ function TimeChart(props) {
     const getDonutConfig = () => (
         {
             appendPadding: 10,
-            data: data,
+            data: chartData,
             angleField: 'value',
             colorField: 'type',
             radius: 1,

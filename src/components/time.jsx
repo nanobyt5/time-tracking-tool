@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-import { DatePicker, Select } from "antd";
+import {Button, DatePicker, Drawer, Select} from "antd";
 import { FormLabel, Grid } from "@material-ui/core";
 import DataGrid, {
   Column, ColumnChooser,
@@ -11,6 +11,7 @@ import DataGrid, {
   Summary,
   TotalItem,
 } from "devextreme-react/data-grid";
+import S3FileCheckbox from "../components/s3/s3Checkbox.jsx";
 
 import StateStore from "../stores/stateStore";
 
@@ -59,6 +60,11 @@ const COLUMNS = [
     toGroup: false,
   },
   {
+    dataField: "planned",
+    dataType: "string",
+    toGroup: false,
+  },
+  {
     dataField: "hours",
     dataType: "number",
     toGroup: false,
@@ -68,10 +74,11 @@ const COLUMNS = [
 const GROUP_METHODS = [
   { value: "", label: "All" },
   { value: "activity", label: "Activity" },
-  { value: "tags", label: "Tags" },
-  { value: "team", label: "Team" },
   { value: "member", label: "Member" },
   { value: "sprint", label: "Sprint" },
+  { value: "tags", label: "Tags" },
+  { value: "team", label: "Team" },
+  { value: "planned", label: "Planned" }
 ];
 
 const INITIAL_GROUP_BY = "tags";
@@ -84,14 +91,65 @@ function Time() {
   const [db, setDb] = useState([]);
   const [minDate, setMinDate] = useState(new Date());
   const [maxDate, setMaxDate] = useState(new Date());
+  const [allTeams, setAllTeams] = useState([]);
+  const [allMembers, setAllMembers] = useState([]);
+  const [allActivities, setAllActivities] = useState([]);
+  const [allTags, setAllTags] = useState([]);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [team, setTeam] = useState([]);
-  const [member, setMember] = useState([]);
-  const [activity, setActivity] = useState([]);
-  const [tags, setTags] = useState([]);
+  const [teamsFilter, setTeamsFilter] = useState([]);
+  const [membersFilter, setMembersFilter] = useState([]);
+  const [activitiesFilter, setActivitiesFilter] = useState([]);
+  const [tagsFilter, setTagsFilter] = useState([]);
   const [groupBy, setGroupBy] = useState(INITIAL_GROUP_BY);
   const [columns, setColumns] = useState(COLUMNS);
+  const [importDrawerVisibility, setImportDrawerVisibility] = useState(false);
+
+  /**
+   * Gets all distinct entries based on the toGet field.
+   */
+  const getAllFromDb = (toGet, db) => {
+    const lookUp = {};
+    const toGets = [];
+
+    db.forEach((entry) => {
+      const entryElement = entry[toGet];
+
+      if (!(entryElement in lookUp)) {
+        if (entryElement !== "") {
+          toGets.push(entryElement);
+          lookUp[entryElement] = 1;
+        }
+      }
+    });
+
+    return toGets.sort();
+  };
+
+  /**
+   * Gets all distinct tags from db.
+   */
+  const getAllTags = (db) => {
+    const lookUp = {};
+    const tags = [];
+
+    db.forEach((entry) => {
+      const tagsFromEntry = entry["Tags"];
+      tagsFromEntry.split(",").forEach((tag) => {
+        tag = tag.trim();
+        if (tag === "") {
+          return;
+        }
+
+        if (!(tag in lookUp)) {
+          tags.push(tag);
+          lookUp[tag] = 1;
+        }
+      });
+    });
+
+    return tags.sort();
+  };
 
   /**
    * Process the merged data to get the relevant data for the time page.
@@ -121,6 +179,10 @@ function Time() {
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
     setDb(content);
+    setAllActivities(getAllFromDb("Activity", content));
+    setAllMembers(getAllFromDb("Member", content));
+    setAllTags(getAllTags(content));
+    setAllTeams(getAllFromDb("Team", content));
   };
 
   /**
@@ -133,10 +195,6 @@ function Time() {
     );
     processData(content.flat());
   };
-
-  useEffect(() => {
-    processJsonToTable();
-  }, [StateStore.jsonFiles.length]);
 
   /**
    * Checks the entry from db on whether it should be part of the data used.
@@ -152,22 +210,22 @@ function Time() {
       return false;
     }
 
-    let dateFilter = date <= endDate && date >= startDate;
-    let teamFilter = team.length === 0 || team.includes(entryTeam);
-    let userFilter = member.length === 0 || member.includes(user);
-    let activityFilter =
-      activity.length === 0 || activity.includes(entryActivity);
-    let tagsFilter = tags.length === 0;
+    let isDateAccepted = date <= endDate && date >= startDate;
+    let isTeamAccepted = teamsFilter.length === 0 || teamsFilter.includes(entryTeam);
+    let isMemberAccepted = membersFilter.length === 0 || membersFilter.includes(user);
+    let isActivityAccepted =
+      activitiesFilter.length === 0 || activitiesFilter.includes(entryActivity);
+    let areTagsAccepted = tagsFilter.length === 0;
 
     for (let t of entryTags) {
-      if (tags.includes(t.trim())) {
-        tagsFilter = true;
+      if (tagsFilter.includes(t.trim())) {
+        areTagsAccepted = true;
         break;
       }
     }
 
     return (
-      dateFilter && activityFilter && tagsFilter && userFilter && teamFilter
+      isDateAccepted && isActivityAccepted && areTagsAccepted && isMemberAccepted && isTeamAccepted
     );
   };
 
@@ -188,7 +246,8 @@ function Time() {
           activity: entry["Activity"],
           hours: entry["Hours"],
           tags: entry["Tags"],
-          storyPoints: entry["Story Points"]
+          storyPoints: entry["Story Points"],
+          planned: entry["Unplanned"] === "No" ? "Yes" : "No"
         });
       }
     });
@@ -201,21 +260,21 @@ function Time() {
    * Updates filters with the new teams.
    */
   const changeTeam = (newTeams) => {
-    setTeam(newTeams);
+    setTeamsFilter(newTeams);
   };
 
   /**
    * Updates filters with the new team members.
    */
   const changeMember = (newUsers) => {
-    setMember(newUsers);
+    setMembersFilter(newUsers);
   };
 
   /**
    * Updates filters with the new activities.
    */
   const changeActivities = (newActivities) => {
-    setActivity(newActivities);
+    setActivitiesFilter(newActivities);
   };
 
   /**
@@ -234,7 +293,7 @@ function Time() {
    * Updates filters with the new tags.
    */
   const changeTags = (newTags) => {
-    setTags(newTags);
+    setTagsFilter(newTags);
   };
 
   /**
@@ -245,62 +304,15 @@ function Time() {
   };
 
   /**
-   * Gets all distinct entries based on the toGet field.
-   */
-  const getAllFromDb = (toGet) => {
-    const lookUp = {};
-    const toGets = [];
-
-    db.forEach((entry) => {
-      const entryElement = entry[toGet];
-
-      if (!(entryElement in lookUp)) {
-        if (entryElement !== "") {
-          toGets.push(entryElement);
-          lookUp[entryElement] = 1;
-        }
-      }
-    });
-
-    return toGets.sort();
-  };
-
-  /**
-   * Gets all distinct tags from db.
-   */
-  const getAllTags = () => {
-    const lookUp = {};
-    const tags = [];
-
-    db.forEach((entry) => {
-      const tagsFromEntry = entry["Tags"];
-      tagsFromEntry.split(",").forEach((tag) => {
-        tag = tag.trim();
-        if (tag === "") {
-          return;
-        }
-
-        if (!(tag in lookUp)) {
-          tags.push(tag);
-          lookUp[tag] = 1;
-        }
-      });
-    });
-
-    return tags.sort();
-  };
-
-  /**
    * Checks whether the date inputted is in between the min and max dates.
    */
   const checkDate = (date) => {
     return date < moment(minDate) || date > moment(maxDate);
   };
 
-  const allTeams = getAllFromDb("Team");
-  const allMembers = getAllFromDb("Member");
-  const allActivities = getAllFromDb("Activity");
-  const allTags = getAllTags();
+  useEffect(() => {
+    processJsonToTable();
+  }, [StateStore.jsonFiles.length]);
 
   useEffect(() => {
     const newCols = [...columns];
@@ -345,6 +357,27 @@ function Time() {
       </Select>
     </div>
   );
+
+  const importComponent = () => (
+    <div className="importButton">
+      <Button
+        size="medium"
+        onClick={ () => {setImportDrawerVisibility(true)} }
+      >
+        Import
+      </Button>
+      <Drawer
+        title="Import From S3"
+        placement="right"
+        width="450"
+        closable={false}
+        onClose={ () => {setImportDrawerVisibility(false)} }
+        visible={ importDrawerVisibility }
+      >
+        <S3FileCheckbox />
+      </Drawer>
+    </div>
+  )
 
   const datePickerRow = () => (
     <div className="datePickerRow">
@@ -399,14 +432,14 @@ function Time() {
         <GroupItem
           column="hours"
           summaryType="sum"
-          displayFormat="Total Hours: {0}"
+          displayFormat="{0}hrs"
           valueFormat="#.###"
-          showInGroupFooter={true}
+          alignByColumn={true}
         />
         <TotalItem
           column="hours"
           summaryType="sum"
-          displayFormat="Total: {0}"
+          displayFormat="Total: {0}hrs"
           valueFormat="#.###"
         />
       </Summary>
@@ -429,20 +462,24 @@ function Time() {
 
   const secondRowComponent = () => (
     <Grid container justify={"space-between"} className="secondRow">
-      {selectMultiComponent("Team:", team, allTeams, changeTeam)}
-      {selectMultiComponent("Member:", member, allMembers, changeMember)}
+      {selectMultiComponent("Team:", teamsFilter, allTeams, changeTeam)}
+      {selectMultiComponent("Member:", membersFilter, allMembers, changeMember)}
       {selectMultiComponent(
         "Activity:",
-        activity,
+        activitiesFilter,
         allActivities,
         changeActivities
       )}
-      {selectMultiComponent("Tags:", tags, allTags, changeTags)}
+      {selectMultiComponent("Tags:", tagsFilter, allTags, changeTags)}
     </Grid>
   );
 
   return (
     <div>
+      <div className="titleComponent">
+        <h2>Time Per "{groupBy}"</h2>
+        {importComponent()}
+      </div>
       <Grid container justify={"space-evenly"}>
         <div className="tableWithForms">
           {firstRowComponent()}
