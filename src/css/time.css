@@ -15,8 +15,17 @@
     margin: 5px;
 }
 
+.titleComponent {
+    width: 49%;
+    margin: 5px;
+    display: flex;
+    justify-content: center;
+}
+
 .importButton {
     width: 15%;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .selectSingleComponent {

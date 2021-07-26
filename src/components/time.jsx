@@ -450,7 +450,6 @@ function Time() {
 
   const firstRowComponent = () => (
     <Grid container className="firstRow">
-      {importComponent()}
       {datePickerRow()}
       {selectSingleComponent(
         "Group By:",
@@ -479,6 +478,7 @@ function Time() {
     <div>
       <div className="titleComponent">
         <h2>Time Per "{groupBy}"</h2>
+        {importComponent()}
       </div>
       <Grid container justify={"space-evenly"}>
         <div className="tableWithForms">

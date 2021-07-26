@@ -438,6 +438,7 @@ function SprintVelocityChart() {
       }
     })
   }
+
   const importPromiseFromS3 = (key) => {
     const params = {
       Bucket: "time-tracking-storage",
@@ -518,7 +519,7 @@ function SprintVelocityChart() {
     onSelectAll: (isSelected, selectedRows, changedRows) => {
       onS3RowSelectAll(isSelected, changedRows);
     },
-    selectedRowKeys: ["sprint/19-23July_2021-07-22T02:53:38.030Z"]
+    // selectedRowKeys: ["sprint/19-23July_2021-07-22T02:53:38.030Z"]
   }
 
   useEffect(() => {
