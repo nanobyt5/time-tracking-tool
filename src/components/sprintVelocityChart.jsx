@@ -465,6 +465,10 @@ function SprintVelocityChart() {
     let newSelectedData = [...selectedData];
     let newTableData = [...tableData];
 
+    if (newSelectedData.length === 0) {
+      newTableData = [];
+    }
+
     if (isSelected) {
       let promise = importPromiseFromS3(key);
 
@@ -519,7 +523,6 @@ function SprintVelocityChart() {
     onSelectAll: (isSelected, selectedRows, changedRows) => {
       onS3RowSelectAll(isSelected, changedRows);
     },
-    // selectedRowKeys: ["sprint/19-23July_2021-07-22T02:53:38.030Z"]
   }
 
   useEffect(() => {

@@ -35,6 +35,10 @@ function TimeChart(props) {
             let label = entry[groupBy];
             let hours = entry["hours"];
 
+            if (hours === "") {
+                return;
+            }
+
             if (!(label in lookUp)) {
                 lookUp[label] = parseFloat(hours);
                 labels.push(label);
