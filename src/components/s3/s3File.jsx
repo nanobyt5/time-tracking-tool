@@ -6,7 +6,6 @@ import UploadFile from "./uploadFile";
 import ExportFile from "./exportFile";
 import * as XLSX from "xlsx";
 import {Table} from "antd";
-import StateStore from "../../stores/stateStore";
 
 AWS.config.update({
   accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
