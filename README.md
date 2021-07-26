@@ -1,70 +1,163 @@
-# Getting Started with Create React App
+# TIME TRACKING TOOL
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Created by [Nazryl Lim](https://www.linkedin.com/in/nazryllim/), [Marcus Ong](https://www.linkedin.com/in/marcus-ong-25205618b) and [Janessa Tng](https://www.linkedin.com/in/janessatng).
 
-## Available Scripts
+## Introduction
 
-In the project directory, you can run:
+The purpose of a time tracking tool is to boost productivity. It's used to calculate sprint velocity, anticipate sprints, as well as estimate project story points. This project is geared toward Lexagle personnel.
 
-### `npm start`
+## Getting Started
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Installation (Windows)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+1. [Node.js SDK](https://nodejs.org/en/download/)
+2. [Visual Studio Code](https://code.visualstudio.com/)\
+   a. Simple React Snippets - burkeholland.simple-react-snippets\
+   b. Prettier Code formatter - esbenp.prettier-vscode
+3. [AWS CLI](https://aws.amazon.com/cli/)
 
-### `npm test`
+## Setup
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### AWS CLI
 
-### `npm run build`
+Open Command Prompt
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+aws configure
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+AWS Access Key ID [None]: 'INSERT ACCESS KEY ID'
+AWS Secret Access Key [None]: 'INSERT SECRET ACCESS KEY'
+Default region name [None]: ap-southeast-1
+Default output format [None]: json
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Setup React Project
 
-### `npm run eject`
+Create new React Project App\
+Open Command Prompt
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```
+create-react-app 'project-name'
+npm start
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### VS Code
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Install Bootstrap for CSS\
+Open terminal in VS Code
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```
+npm install bootstrap
+```
 
-## Learn More
+Install MobX (Stores states)
+Open terminal in VS Code
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+npm install mobx
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Install mobx-react (Observer)
+Open terminal in VS Code
 
-### Code Splitting
+```
+npm install mobx-react
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Install react-router-dom (Page routing)
+Open terminal in VS Code
 
-### Analyzing the Bundle Size
+```
+npm install react-router-dom
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Install Chart and Table
 
-### Making a Progressive Web App
+```
+npm install @ant-design/charts
+npm install devextreme@21.1 devextreme-react@21.1
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```
 
-### Advanced Configuration
+Install Slider, filter options and import/export
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
+npm install antd
+npm install tslib
+npm install @material-ui/core
+```
 
-### Deployment
+Install XLSX to read CSV files
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```
+npm i xlsx
+```
 
-### `npm run build` fails to minify
+Install Compare Dates for filter
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+npm i react-moment
+```
+
+Install S3 Bucket Commands
+
+```
+npm i aws-sdk
+```
+
+Install Convert data to CSV
+
+```
+npm i file-saver
+```
+
+### S3 Bucket
+
+1. Go to [AWS S3 Bucket](https://aws.amazon.com/console/)
+2. Create a Bucket
+3. Keep settings by default
+4. Uncheck **Block all public access**
+5. Set Bucket policy (Change BUCKETNAME to your bucket name)
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowPublicReadAccess",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::BUCKETNAME/*"
+        }
+    ]
+}
+```
+
+6. Set Cross-origin resource sharing (CORS) to enable GET and POST
+
+```
+[
+    {
+        "AllowedHeaders": [],
+        "AllowedMethods": [
+            "POST",
+            "GET"
+        ],
+        "AllowedOrigins": [
+            "*"
+        ],
+        "ExposeHeaders": []
+    }
+]
+```
+
+### Connect to S3 time-tracking-tool Bucket
+
+Add Deploy NPM Script (Add to package.json under `scripts`)
+
+```
+"deploy": "react-scripts build && aws s3 sync build s3://bucket-name"
+```
