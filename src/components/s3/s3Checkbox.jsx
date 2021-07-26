@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { observer } from "mobx-react";
+import React, {Component} from "react";
+import {observer} from "mobx-react";
 import AWS from "aws-sdk";
 import StateStore from "../../stores/stateStore";
 import {Table} from "antd";
@@ -55,19 +55,9 @@ class S3Checkbox extends Component {
             key: content["Key"]
           }
         });
-        // if (StateStore.checkboxState.length > 0) {
-        //   checkAll = StateStore.checkboxState.every((item) => {
-        //     return item === true;
-        //   });
-        // } else if (StateStore.checkboxState.length === 0) {
-        //   StateStore.checkboxState = new Array(data.Contents.length).fill(
-        //     false
-        //   );
-        // }
 
         this.setState({
           fileList: s3Data,
-          // isCheckAll: checkAll,
         });
       }
     });
@@ -93,11 +83,9 @@ class S3Checkbox extends Component {
     } else {
       newFileNames = newFileNames.filter(item => item !== key);
 
-      let newFiles = StateStore.jsonFiles.filter(
+      StateStore.jsonFiles = StateStore.jsonFiles.filter(
           (item) => item.name !== key
       );
-
-      StateStore.jsonFiles = newFiles;
       StateStore.checkboxState = newFileNames;
     }
   };
@@ -168,32 +156,6 @@ class S3Checkbox extends Component {
     return (
       <div className="card">
         {this.s3TimeTableComponent()}
-        {/*<div className="card-header">Excel Files</div>*/}
-        {/*<ul className="list-group">*/}
-        {/*  <li className="list-group-item">*/}
-        {/*    <input*/}
-        {/*      type="checkbox"*/}
-        {/*      checked={this.state.isCheckAll}*/}
-        {/*      onChange={this.handleSelectAll.bind(this)}*/}
-        {/*    />*/}
-        {/*    &nbsp;*/}
-        {/*    <label>Select All</label>*/}
-        {/*  </li>*/}
-        {/*  {this.state.fileList.map((name, index) => (*/}
-        {/*    <li className="list-group-item" key={index}>*/}
-        {/*      <input*/}
-        {/*        type="checkbox"*/}
-        {/*        id={`custom-checkbox-${index}`}*/}
-        {/*        name="checkFiles"*/}
-        {/*        value={name.Key}*/}
-        {/*        checked={StateStore.checkboxState[index]}*/}
-        {/*        onChange={this.onSelect.bind(this)}*/}
-        {/*      />*/}
-        {/*      &nbsp;*/}
-        {/*      <label>{name.Key}</label>*/}
-        {/*    </li>*/}
-        {/*  ))}*/}
-        {/*</ul>*/}
       </div>
     );
   }
