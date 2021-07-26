@@ -5,6 +5,8 @@ import DeleteFile from "./deleteFile";
 import UploadFile from "./uploadFile";
 import ExportFile from "./exportFile";
 import * as XLSX from "xlsx";
+import {Table} from "antd";
+import StateStore from "../../stores/stateStore";
 
 AWS.config.update({
   accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
@@ -24,13 +26,18 @@ const CSV_FILE_ATTACHMENT = '.csv';
 
 const TIME_PAGE_PREFIX = 'time/';
 
+const COLUMNS = [{
+  title: "File Name",
+  dataIndex: "key"
+}];
+
 class S3File extends Component {
   constructor() {
     super();
     this.state = {
       listFiles: [],
       fileName: null,
-      labelValue: null,
+      labelValue: "",
       selectedFile: null,
     };
 
@@ -47,7 +54,8 @@ class S3File extends Component {
       if (err) {
         console.log(err, err.stack);
       } else {
-        this.setState({ listFiles: data.Contents });
+        let listFiles = data["Contents"].map(({ Key }) => ({ key: Key }));
+        this.setState({ listFiles: listFiles });
       }
     });
   }
@@ -218,18 +226,15 @@ class S3File extends Component {
     } else if (
       window.confirm("Are you sure you want to delete " + params.Key + "?")
     ) {
-      this.deleteInS3(params);
-      this.setState({
-        labelValue: params.Key + " deleted successfully.",
-        fileName: null,
-      });
-
-      let newItems = this.state.listFiles.filter(
-          (item) => item.Key !== params.Key
-      );
-      this.setState({
-        listFiles: newItems,
-      });
+      this.deleteInS3(params)
+          .then(() => {
+            let newFiles = this.state.listFiles.filter(({ key }) => key !== params.Key);
+            this.setState({
+              listFiles: newFiles,
+              labelValue: params.Key + " deleted successfully.",
+              fileName: null,
+            });
+          });
     } else {
       this.setState({ labelValue: params.Key + " not deleted." });
     }
@@ -242,28 +247,35 @@ class S3File extends Component {
     });
   };
 
-  handleOnListChange = (e) => {
-    this.setState({ fileName: e.target.value, labelValue: null });
+  handleOnListChange = ({ key }) => {
+    this.setState({
+      fileName: key,
+      labelValue: ""
+    });
   };
+
+  getRowSelection = () => ({
+    type: "radio",
+    onSelect: (selectedRow) => {
+      this.handleOnListChange(selectedRow)
+    },
+  })
+
+  tableComponent = () => (
+      <Table
+        rowSelection={
+          this.getRowSelection()
+        }
+        columns={ COLUMNS }
+        dataSource={ this.state.listFiles }
+      />
+  )
 
   render() {
     return (
       <div className="card">
-        <div className="card-header">Storage</div>
         <ul className="list-group">
-          {this.state.listFiles.map((name, index) => (
-            <li className="list-group-item" key={index}>
-              <input
-                type="radio"
-                name="radioFiles"
-                value={name.Key}
-                checked={name.Key === this.state.fileName}
-                onChange={this.handleOnListChange.bind(this)}
-              />
-              &nbsp;
-              <label>{name.Key}</label>
-            </li>
-          ))}
+          {this.tableComponent()}
           <ExportFile handleOnExport={this.handleOnExport.bind(this)} />
           <DeleteFile handleOnDelete={this.handleOnDelete.bind(this)} />
           <UploadFile
