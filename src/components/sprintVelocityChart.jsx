@@ -310,6 +310,10 @@ function SprintVelocityChart() {
         let finalStoryPoints = options.totalValue.storyPoints;
         let finalCapacity = options.totalValue.capacity / HOURS_PER_DAY;
         options.totalValue = finalStoryPoints / finalCapacity;
+        break;
+
+      default:
+        break;
     }
   };
 
@@ -434,6 +438,7 @@ function SprintVelocityChart() {
       }
     })
   }
+
   const importPromiseFromS3 = (key) => {
     const params = {
       Bucket: "time-tracking-storage",
@@ -460,6 +465,10 @@ function SprintVelocityChart() {
     let newSelectedData = [...selectedData];
     let newTableData = [...tableData];
 
+    if (newSelectedData.length === 0) {
+      newTableData = [];
+    }
+
     if (isSelected) {
       let promise = importPromiseFromS3(key);
 
@@ -485,7 +494,7 @@ function SprintVelocityChart() {
 
     if (isSelected) {
       let promises = [];
-      changedRows.forEach(({ key: key }) => {
+      changedRows.forEach(({ key }) => {
         promises.push(importPromiseFromS3(key))
       })
 
@@ -493,7 +502,7 @@ function SprintVelocityChart() {
           .then(files => {
             newSelectedData.push(files);
 
-            files.forEach(({content: content}) => {
+            files.forEach(({ content }) => {
               newTableData.push(content)
             })
           })
