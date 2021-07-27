@@ -1,29 +1,33 @@
+.timePage {
+    display: grid;
+    grid-template-columns: 55% 45%;
+    padding: 5px;
+}
+
+.tableAndOptions {
+    height: auto;
+    padding: 5px;
+}
+
+.titleRow {
+    display: grid;
+    grid-template-columns: 80% 20%;
+    align-items: center;
+}
+
 .firstRow {
     display: flex;
     margin: 2px;
     justify-content: space-between;
     align-items: center;
-    width: 45%;
 }
 
 .datePickerRow {
-    width: 45%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     margin: 5px;
-}
-
-.titleComponent {
-    width: 49%;
-    margin: 5px;
-    display: flex;
-    justify-content: center;
 }
 
 .importButton {
-    width: 15%;
+    width: 100%;
     display: flex;
     justify-content: flex-end;
 }
@@ -49,25 +53,22 @@
     justify-content: center;
 }
 
-.tableWithForms {
-    width: 49%;
-    margin: 5px;
-}
-
 .donutChart {
-    width: 49%;
-    margin: 5px;
+    height: 80vh;
 }
 
 @media screen and (max-width: 1060px) {
-    .tableWithForms {
-        width: 100%;
-        margin: 5px;
+    .timePage {
+        display: contents;
+        justify-content: center;
+    }
+
+    .tableAndOptions {
+        height: auto;
     }
 
     .donutChart {
         width: 100%;
-        margin: 5px;
     }
 }
 
