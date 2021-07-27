@@ -192,14 +192,16 @@ function TimeChart(props) {
 
     return(
         <div>
-            <div className="timeChart">
+            <div className="timeChartComponent">
                 {radioComponent(
                     "chartTypeForm",
                     chartType,
                     CHART_TYPES,
                     changeChartType
                 )}
-                {getChart()}
+                <div className="timeChart">
+                    {getChart()}
+                </div>
             </div>
         </div>
     );
