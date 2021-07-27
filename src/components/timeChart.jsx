@@ -66,6 +66,9 @@ function TimeChart(props) {
         return word.slice(0, 1).toUpperCase() + word.slice(1, word.length)
     };
 
+    /**
+     * Update the time chart when the props given from time table changes.
+     */
     useEffect(() => {
         let newDb = props["data"];
         let newGroupBy = props["groupBy"];

@@ -51,6 +51,7 @@ function SprintVelocityChart() {
   const [selectedData, setSelectedData] = useState([]);
   const [exportButtonVisibility, setExportButtonVisibility] = useState(false);
   const [importDrawerVisibility, setImportDrawerVisibility] = useState(false);
+
   /**
    * Takes in a sorted array of the sprints and data from `getData` and use them to populate the
    * data for the bar, line, and table to be shown.
@@ -262,6 +263,9 @@ function SprintVelocityChart() {
     updateTable(dataToChange, edit);
   };
 
+  /**
+   * Saves the current table data into S3 bucket with the file name based on what the user entered.
+   */
   const onSave = (values) => {
     if (tableData.length === 0) {
       return;
@@ -317,6 +321,10 @@ function SprintVelocityChart() {
     }
   };
 
+  /**
+   * Update the sprint charts with the mutated imported data from s3 bucket and the sprints from the
+   * imported data.
+   */
   const updateChartWithImportData = (importedData, sprints) => {
     let newBarData = [];
     let newLineData = [];
@@ -352,6 +360,10 @@ function SprintVelocityChart() {
     setLineData(newLineData);
   }
 
+  /**
+   * Use the imported data from s3 and mutate it to fit the data used for the sprint velocity table
+   * and chart.
+   */
   const getChartDataFromImport = (importedData, sprints) => {
     let lookUp = {};
 
@@ -375,6 +387,9 @@ function SprintVelocityChart() {
     updateChartWithImportData(lookUp, sprints);
   }
 
+  /**
+   * Handles the file being imported from the s3.
+   */
   const onImport = (s3ImportedFiles) => {
     let sprintsLookUp = {};
     let sprints = [];
@@ -400,6 +415,9 @@ function SprintVelocityChart() {
     getChartDataFromImport(s3ImportedFiles, sprints);
   }
 
+  /**
+   * Uploads the table data into s3.
+   */
   const uploadToS3 = (name) => {
     if (tableData.length === 0) {
       return;
@@ -421,6 +439,9 @@ function SprintVelocityChart() {
     })
   }
 
+  /**
+   * Get all the files with the "sprint/" prefix from the s3 bucket.
+   */
   const listS3Sprints = () => {
     s3.listObjectsV2(s3SprintParams, (err, data) => {
       if (err) {
@@ -439,6 +460,9 @@ function SprintVelocityChart() {
     })
   }
 
+  /**
+   * Creates a promise that imports the file with the same key input from s3.
+   */
   const importPromiseFromS3 = (key) => {
     const params = {
       Bucket: "time-tracking-storage",
@@ -460,6 +484,11 @@ function SprintVelocityChart() {
     });
   }
 
+  /**
+   * Handles the behavior when a row is selected from the drawer.
+   * If isSelected is true, proceed to import the selected key from s3.
+   * If isSelected is false, remove the file with the key from the data in sprint velocity page.
+   */
   const onS3RowSelect = (selectedRow, isSelected) => {
     const key = selectedRow["key"];
     let newSelectedData = [...selectedData];
@@ -488,6 +517,11 @@ function SprintVelocityChart() {
     }
   }
 
+  /**
+   * Handles the behavior when all the rows are selected or deselected.
+   * If isSelected is true, import all changedRows from s3 to sprint velocity page.
+   * If isSelected is false, empty all data in sprint velocity page.
+   */
   const onS3RowSelectAll = (isSelected, changedRows) => {
     let newSelectedData = [];
     let newTableData = [];
@@ -516,6 +550,9 @@ function SprintVelocityChart() {
     }
   }
 
+  /**
+   * Defines the behavior of the row selection for sprint velocity drawer.
+   */
   const s3RowSelection = {
     onSelect: (selectedRow, isSelected) => {
       onS3RowSelect(selectedRow, isSelected);
@@ -525,10 +562,16 @@ function SprintVelocityChart() {
     },
   }
 
+  /**
+   * Before mount, get all files with sprint prefix from s3.
+   */
   useEffect(() => {
     listS3Sprints();
   }, []);
 
+  /**
+   * Calls the method when StateStore.jsonFiles.length is changed to update the sprint velocity page.
+   */
   useEffect(() => {
     processJsonToTable();
   }, [StateStore.jsonFiles.length]);

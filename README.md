@@ -78,7 +78,6 @@ Install Chart and Table
 ```
 npm install @ant-design/charts
 npm install devextreme@21.1 devextreme-react@21.1
-
 ```
 
 Install Slider, filter options and import/export
