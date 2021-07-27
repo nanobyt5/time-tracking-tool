@@ -184,7 +184,7 @@ function TimeChart(props) {
         <div className={className}>
             <Radio.Group value={selectName} onChange={onChange}>
                 {radios.map((radio) => (
-                    <Radio value={radio["value"]}>{radio["label"]}</Radio>
+                    <Radio key={radio["label"]} value={radio["value"]}>{radio["label"]}</Radio>
                 ))}
             </Radio.Group>
         </div>
