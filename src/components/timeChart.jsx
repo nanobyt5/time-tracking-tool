@@ -184,7 +184,7 @@ function TimeChart(props) {
         <div className={className}>
             <Radio.Group value={selectName} onChange={onChange}>
                 {radios.map((radio) => (
-                    <Radio value={radio["value"]}>{radio["label"]}</Radio>
+                    <Radio key={radio["label"]} value={radio["value"]}>{radio["label"]}</Radio>
                 ))}
             </Radio.Group>
         </div>
@@ -192,14 +192,16 @@ function TimeChart(props) {
 
     return(
         <div>
-            <div className="timeChart">
+            <div className="timeChartComponent">
                 {radioComponent(
                     "chartTypeForm",
                     chartType,
                     CHART_TYPES,
                     changeChartType
                 )}
-                {getChart()}
+                <div className="timeChart">
+                    {getChart()}
+                </div>
             </div>
         </div>
     );

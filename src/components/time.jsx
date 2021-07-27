@@ -23,6 +23,7 @@ import moment from "moment";
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
+//Use as default for time table
 const COLUMNS = [
   {
     dataField: "date",
@@ -71,6 +72,7 @@ const COLUMNS = [
   }
 ];
 
+//All options for grouping the data provided
 const GROUP_METHODS = [
   { value: "", label: "All" },
   { value: "activity", label: "Activity" },
@@ -310,6 +312,13 @@ function Time() {
     return date < moment(minDate) || date > moment(maxDate);
   };
 
+  /**
+   * Capitalises the first letter of the groupBy.
+   */
+  const capitalizeGroupBy = () => {
+    return groupBy.slice(0, 1).toUpperCase() + groupBy.slice(1, groupBy.length)
+  };
+
   useEffect(() => {
     processJsonToTable();
   }, [StateStore.jsonFiles.length]);
@@ -336,7 +345,7 @@ function Time() {
         tokenSeparators={[","]}
       >
         {options.map((option) => (
-          <Option value={option}>{option}</Option>
+          <Option key={option} value={option}>{option}</Option>
         ))}
       </Select>
     </div>
@@ -352,7 +361,7 @@ function Time() {
         style={{ width: "60%" }}
       >
         {options.map((option) => (
-          <Option value={option["value"]}>{option["label"]}</Option>
+          <Option key={option["value"]} value={option["value"]}>{option["label"]}</Option>
         ))}
       </Select>
     </div>
@@ -390,62 +399,66 @@ function Time() {
   );
 
   const dataGridComponent = () => (
-    <DataGrid
-      height={"56vh"}
-      dataSource={data}
-      showBorders={true}
-      wordWrapEnabled={true}
-      allowColumnReordering={true}
-      style={{ margin: 5 }}
-    >
-      <SearchPanel visible={true} />
-      <ColumnChooser
-          enabled={true}
-          mode="select"
-      />
-      <Grouping
-          autoExpandAll={true}
-          texts={{ groupByThisColumn: {groupBy} }}
-          expandMode="rowClick"
-      />
-      <Selection mode="single" />
-      <Scrolling mode="virtual" />
-
-      {columns.map(({ toGroup, dataField, dataType }) =>
-        toGroup ? (
-          <Column
-            dataField={dataField}
-            dataType={dataType}
-            alignment={"center"}
-            groupIndex={0}
+      <div>
+        <DataGrid
+            height="65vh"
+            dataSource={data}
+            showBorders={true}
+            wordWrapEnabled={true}
+            allowColumnReordering={true}
+            style={{ margin: 5 }}
+        >
+          <SearchPanel visible={true} />
+          <ColumnChooser
+              enabled={true}
+              mode="select"
           />
-        ) : (
-          <Column
-            dataField={dataField}
-            dataType={dataType}
-            alignment={"center"}
+          <Grouping
+              autoExpandAll={true}
+              texts={{ groupByThisColumn: {groupBy} }}
+              expandMode="rowClick"
           />
-        )
-      )}
+          <Selection mode="single" />
+          <Scrolling mode="virtual" />
 
-      <Summary>
-        <GroupItem
-          column="hours"
-          summaryType="sum"
-          displayFormat="{0}hrs"
-          valueFormat="#.###"
-          alignByColumn={true}
-        />
-        <TotalItem
-          column="hours"
-          summaryType="sum"
-          displayFormat="Total: {0}hrs"
-          valueFormat="#.###"
-        />
-      </Summary>
+          {columns.map(({ toGroup, dataField, dataType }) =>
+              toGroup ? (
+                  <Column
+                      key={dataField}
+                      dataField={dataField}
+                      dataType={dataType}
+                      alignment={"center"}
+                      groupIndex={0}
+                  />
+              ) : (
+                  <Column
+                      key={dataField}
+                      dataField={dataField}
+                      dataType={dataType}
+                      alignment={"center"}
+                  />
+              )
+          )}
 
-      <Export enabled={true} />
-    </DataGrid>
+          <Summary>
+            <GroupItem
+                column="hours"
+                summaryType="sum"
+                displayFormat="{0}hrs"
+                valueFormat="#.###"
+                alignByColumn={true}
+            />
+            <TotalItem
+                column="hours"
+                summaryType="sum"
+                displayFormat="Total: {0}hrs"
+                valueFormat="#.###"
+            />
+          </Summary>
+
+          <Export enabled={true} />
+        </DataGrid>
+      </div>
   );
 
   const firstRowComponent = () => (
@@ -475,21 +488,21 @@ function Time() {
   );
 
   return (
-    <div>
-      <div className="titleComponent">
-        <h2>Time Per "{groupBy}"</h2>
-        {importComponent()}
-      </div>
-      <Grid container justify={"space-evenly"}>
+    <div className="timePage">
+      <div className="tableAndOptions">
+        <div className="titleRow">
+          <h2>Time Per {capitalizeGroupBy()}</h2>
+          {importComponent()}
+        </div>
         <div className="tableWithForms">
           {firstRowComponent()}
           {secondRowComponent()}
           {dataGridComponent()}
         </div>
-        <div className="donutChart">
-          <TimeChart data={data} groupBy={groupBy} />
-        </div>
-      </Grid>
+      </div>
+      <div className="donutChart">
+        <TimeChart data={data} groupBy={groupBy} />
+      </div>
     </div>
   );
 }
