@@ -18,6 +18,15 @@ import AWS from "aws-sdk";
 
 const HOURS_PER_DAY = 8;
 
+/**
+ * SENSITIVE CREDENTIALS
+ */
+AWS.config.update({
+  accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
+  secretAccessKey: "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",
+  region: "ap-southeast-1",
+});
+
 const s3 = new AWS.S3();
 
 const s3SprintParams = {

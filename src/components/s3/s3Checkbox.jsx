@@ -1,15 +1,24 @@
 import React, { Component } from "react";
 import { observer } from "mobx-react";
-import AWS from "aws-sdk";
 import StateStore from "../../stores/stateStore";
 import { Table } from "antd";
+import AWS from "aws-sdk";
+
+/**
+ * SENSITIVE CREDENTIALS
+ */
+AWS.config.update({
+  accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
+  secretAccessKey: "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",
+  region: "ap-southeast-1",
+});
 
 const s3 = new AWS.S3();
 
 const s3Params = {
   Bucket: "time-tracking-storage",
   Delimiter: "",
-  Prefix: "time/",
+  Prefix: "time",
 };
 
 const TIME_UPLOAD_COLUMNS = [

@@ -1,4 +1,4 @@
-# TIME TRACKING TOOL
+# Time Tracking Tool
 
 Created by [Nazryl Lim](https://www.linkedin.com/in/nazryllim/), [Marcus Ong](https://www.linkedin.com/in/marcus-ong-25205618b) and [Janessa Tng](https://www.linkedin.com/in/janessatng).
 
@@ -155,6 +155,7 @@ npm i file-saver
 
 ### Connect to S3 time-tracking-tool Bucket
 
+Complete AWS CLI setup.\
 This allows developers to upload built project straight into S3 bucket without manually uploading the files.\
 Add Deploy NPM Script (Add to package.json under `scripts`)\
 Change BUCKETNAME to your bucket name
@@ -167,5 +168,5 @@ Change BUCKETNAME to your bucket name
 
 1. Go to time-tracking-tool bucket.
 2. Properties
-3. Static website hosting
+3. Static website hosting link
    http://time-tracking-tool.s3-website-ap-southeast-1.amazonaws.com/
