@@ -1,14 +1,8 @@
-import React, {Component} from "react";
-import {observer} from "mobx-react";
+import React, { Component } from "react";
+import { observer } from "mobx-react";
 import AWS from "aws-sdk";
 import StateStore from "../../stores/stateStore";
-import {Table} from "antd";
-
-AWS.config.update({
-  accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
-  secretAccessKey: "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",
-  region: "ap-southeast-1",
-});
+import { Table } from "antd";
 
 const s3 = new AWS.S3();
 
@@ -20,9 +14,9 @@ const s3Params = {
 
 const TIME_UPLOAD_COLUMNS = [
   {
-    title: 'File Name',
-    dataIndex: 'key'
-  }
+    title: "File Name",
+    dataIndex: "key",
+  },
 ];
 
 class S3Checkbox extends Component {
@@ -45,15 +39,15 @@ class S3Checkbox extends Component {
       if (err) {
         console.log(err, err.stack);
         this.setState({
-          fileList: []
-        })
+          fileList: [],
+        });
       } else {
         let id = 1;
-        let s3Data = data.Contents.map(content => {
+        let s3Data = data.Contents.map((content) => {
           return {
             id: id++,
-            key: content["Key"]
-          }
+            key: content["Key"],
+          };
         });
 
         this.setState({
@@ -72,19 +66,18 @@ class S3Checkbox extends Component {
     };
 
     if (isSelected) {
-      this.importFromS3(params)
-          .then(file => {
-            StateStore.checkboxState.push(key);
-            StateStore.jsonFiles.push(file);
-          });
+      this.importFromS3(params).then((file) => {
+        StateStore.checkboxState.push(key);
+        StateStore.jsonFiles.push(file);
+      });
       newFileNames.push(key);
 
       StateStore.checkboxState = newFileNames;
     } else {
-      newFileNames = newFileNames.filter(item => item !== key);
+      newFileNames = newFileNames.filter((item) => item !== key);
 
       StateStore.jsonFiles = StateStore.jsonFiles.filter(
-          (item) => item.name !== key
+        (item) => item.name !== key
       );
       StateStore.checkboxState = newFileNames;
     }
@@ -93,7 +86,7 @@ class S3Checkbox extends Component {
   onSelectAll = (isSelected, changedRows) => {
     if (isSelected) {
       let promises = [];
-      let newCheckBoxState = [...StateStore.checkboxState]
+      let newCheckBoxState = [...StateStore.checkboxState];
       changedRows.forEach(({ key }) => {
         let params = {
           Bucket: "time-tracking-storage",
@@ -101,15 +94,14 @@ class S3Checkbox extends Component {
         };
         newCheckBoxState.push(key);
         promises.push(this.importFromS3(params));
-      })
+      });
       StateStore.checkboxState = newCheckBoxState;
 
-      Promise.all(promises)
-          .then(files => {
-            files.forEach((file) => {
-              StateStore.jsonFiles.push(file);
-            })
-          })
+      Promise.all(promises).then((files) => {
+        files.forEach((file) => {
+          StateStore.jsonFiles.push(file);
+        });
+      });
     } else {
       StateStore.checkboxState = [];
       StateStore.jsonFiles = [];
@@ -117,19 +109,19 @@ class S3Checkbox extends Component {
   };
 
   importFromS3 = async (params) => {
-    return new Promise((resolve => {
+    return new Promise((resolve) => {
       s3.getObject(params, (err, data) => {
         if (data) {
           let content = data.Body.toString();
           resolve({
             name: params["Key"],
-            content: content
+            content: content,
           });
         } else {
           console.log("Error: " + err);
         }
       });
-    }))
+    });
   };
 
   getS3TimeRowSelection = () => ({
@@ -139,25 +131,21 @@ class S3Checkbox extends Component {
     onSelectAll: (isSelected, selectedRows, changedRows) => {
       this.onSelectAll(isSelected, changedRows);
     },
-    selectedRowKeys: StateStore.checkboxState
-  })
+    selectedRowKeys: StateStore.checkboxState,
+  });
 
   s3TimeTableComponent = () => (
-      <div>
-        <Table
-          rowSelection={ this.getS3TimeRowSelection() }
-          columns={ TIME_UPLOAD_COLUMNS }
-          dataSource={ this.state.fileList }
-        />
-      </div>
-  )
+    <div>
+      <Table
+        rowSelection={this.getS3TimeRowSelection()}
+        columns={TIME_UPLOAD_COLUMNS}
+        dataSource={this.state.fileList}
+      />
+    </div>
+  );
 
   render() {
-    return (
-      <div className="card">
-        {this.s3TimeTableComponent()}
-      </div>
-    );
+    return <div className="card">{this.s3TimeTableComponent()}</div>;
   }
 }
 

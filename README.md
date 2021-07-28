@@ -162,3 +162,10 @@ Change BUCKETNAME to your bucket name
 ```
 "deploy": "react-scripts build && aws s3 sync build s3://BUCKETNAME"
 ```
+
+### Retrieve Time Tracking Tool site link
+
+1. Go to time-tracking-tool bucket.
+2. Properties
+3. Static website hosting
+   http://time-tracking-tool.s3-website-ap-southeast-1.amazonaws.com/
