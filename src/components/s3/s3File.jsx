@@ -5,30 +5,29 @@ import DeleteFile from "./deleteFile";
 import UploadFile from "./uploadFile";
 import ExportFile from "./exportFile";
 import * as XLSX from "xlsx";
-import {Table} from "antd";
-
-AWS.config.update({
-  accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
-  secretAccessKey: "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",
-  region: "ap-southeast-1",
-});
+import { Table } from "antd";
 
 const s3 = new AWS.S3();
 
+/**
+ * Declare bucket name from S3
+ */
 const s3Params = {
   Bucket: "time-tracking-storage",
   Delimiter: "",
   Prefix: "",
 };
 
-const CSV_FILE_ATTACHMENT = '.csv';
+const CSV_FILE_ATTACHMENT = ".csv";
 
-const TIME_PAGE_PREFIX = 'time/';
+const TIME_PAGE_PREFIX = "time/";
 
-const COLUMNS = [{
-  title: "File Name",
-  dataIndex: "key"
-}];
+const COLUMNS = [
+  {
+    title: "File Name",
+    dataIndex: "key",
+  },
+];
 
 class S3File extends Component {
   constructor() {
@@ -48,6 +47,9 @@ class S3File extends Component {
     this.getListS3();
   }
 
+  /**
+   * Retrieve list of filenames for the table to display.
+   */
   async getListS3() {
     s3.listObjectsV2(s3Params, (err, data) => {
       if (err) {
@@ -59,36 +61,32 @@ class S3File extends Component {
     });
   }
 
-  async uploadInS3(params) {
-    s3.putObject(params, (err, data) => {
-      if (data) {
-        console.log(params.Key + " uploaded successfully.");
-        this.getListS3();
-      } else {
-        console.log("Error: " + err);
-      }
-    });
-  }
-
+  /**
+   * Export file from S3 bucket
+   */
   async exportFromS3(params) {
     s3.getObject(params, function (err, data) {
       const convertJsonToCsv = (json) => {
         let fields = Object.keys(json[0]);
-        const replacer = (key, value) => (value === null ? '' : value);
-        let csv = json.map(row => (
-            fields.map(field => (
-                JSON.stringify(row[field], replacer)
-            )).join(',')
-        ))
-        csv.unshift(fields.join(','));
-        csv = csv.join('\r\n');
+        const replacer = (key, value) => (value === null ? "" : value);
+        let csv = json.map((row) =>
+          fields.map((field) => JSON.stringify(row[field], replacer)).join(",")
+        );
+        csv.unshift(fields.join(","));
+        csv = csv.join("\r\n");
         return csv;
-      }
+      };
 
       if (data) {
         let json = JSON.parse(data.Body.toString());
         let csv = convertJsonToCsv(json);
-        const filename = params.Key;
+        let filename = "";
+        if (params.Key.includes("time/")) {
+          filename = params.Key.replace("time/", "");
+        } else {
+          filename = params.Key.replace("sprint/", "");
+        }
+
         let blob = new Blob([csv], {
           type: "",
         });
@@ -99,6 +97,9 @@ class S3File extends Component {
     });
   }
 
+  /**
+   * Delete file from S3 bucket
+   */
   async deleteInS3(params) {
     s3.deleteObject(params, function (err, data) {
       if (data) {
@@ -109,18 +110,28 @@ class S3File extends Component {
     });
   }
 
+  /**
+   * Upload file to S3 bucket
+   */
   async uploadToS3(jsonFile) {
     const params = {
       Bucket: "time-tracking-storage",
-      Key: TIME_PAGE_PREFIX + this.state.selectedFile.name.split(CSV_FILE_ATTACHMENT, 1).join(''),
-      ContentType: 'json',
+      Key:
+        TIME_PAGE_PREFIX +
+        this.state.selectedFile.name.split(CSV_FILE_ATTACHMENT, 1).join(""),
+      ContentType: "json",
       Body: JSON.stringify(jsonFile),
     };
 
-    if (
-        window.confirm("Are you sure you want to upload " + params.Key + "?")
-    ) {
-      this.uploadInS3(params).then(() => {console.log('success')});
+    if (window.confirm("Are you sure you want to upload " + params.Key + "?")) {
+      s3.putObject(params, (err, data) => {
+        if (data) {
+          console.log(params.Key + " uploaded successfully.");
+          this.getListS3();
+        } else {
+          console.log("Error: " + err);
+        }
+      });
 
       this.setState({
         labelValue: params.Key + " upload successfully.",
@@ -142,13 +153,13 @@ class S3File extends Component {
 
     const dataStringLines = dataString.split(/\r\n|\n/);
     const headers = dataStringLines[0].split(
-        /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
+      /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
     );
     const jsonFile = [];
 
     for (let i = 1; i < dataStringLines.length; i++) {
       const row = dataStringLines[i].split(
-          /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
+        /,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/
       );
       if (headers && row.length === headers.length) {
         const obj = {};
@@ -174,7 +185,7 @@ class S3File extends Component {
   };
 
   /**
-   * Handles the csv file uploaded.
+   * Handles when upload button is clicked.
    * credit: https://www.cluemediator.com/read-csv-file-in-react
    */
   handleOnUpload = () => {
@@ -200,6 +211,9 @@ class S3File extends Component {
     reader.readAsBinaryString(file);
   };
 
+  /**
+   * Handles when export button is clicked.
+   */
   handleOnExport = () => {
     const params = {
       Bucket: "time-tracking-storage",
@@ -214,6 +228,9 @@ class S3File extends Component {
     }
   };
 
+  /**
+   * Handles when delete button is clicked.
+   */
   handleOnDelete = () => {
     const params = {
       Bucket: "time-tracking-storage",
@@ -225,20 +242,24 @@ class S3File extends Component {
     } else if (
       window.confirm("Are you sure you want to delete " + params.Key + "?")
     ) {
-      this.deleteInS3(params)
-          .then(() => {
-            let newFiles = this.state.listFiles.filter(({ key }) => key !== params.Key);
-            this.setState({
-              listFiles: newFiles,
-              labelValue: params.Key + " deleted successfully.",
-              fileName: null,
-            });
-          });
+      this.deleteInS3(params).then(() => {
+        let newFiles = this.state.listFiles.filter(
+          ({ key }) => key !== params.Key
+        );
+        this.setState({
+          listFiles: newFiles,
+          labelValue: params.Key + " deleted successfully.",
+          fileName: null,
+        });
+      });
     } else {
       this.setState({ labelValue: params.Key + " not deleted." });
     }
   };
 
+  /**
+   * Handles when uploaded files is changed.
+   */
   handleOnUploadChange = (e) => {
     this.setState({
       selectedFile: e.target.files[0],
@@ -246,43 +267,53 @@ class S3File extends Component {
     });
   };
 
+  /**
+   * Handles when different radiobutton are clicked.
+   */
   handleOnListChange = ({ key }) => {
     this.setState({
       fileName: key,
-      labelValue: ""
+      labelValue: "",
     });
   };
 
   getRowSelection = () => ({
     type: "radio",
     onSelect: (selectedRow) => {
-      this.handleOnListChange(selectedRow)
+      this.handleOnListChange(selectedRow);
     },
-  })
+  });
 
   tableComponent = () => (
-      <Table
-        rowSelection={
-          this.getRowSelection()
-        }
-        columns={ COLUMNS }
-        dataSource={ this.state.listFiles }
-      />
-  )
+    <Table
+      rowSelection={this.getRowSelection()}
+      columns={COLUMNS}
+      dataSource={this.state.listFiles}
+    />
+  );
 
   render() {
     return (
-      <div className="card">
-        <ul className="list-group">
-          {this.tableComponent()}
-          <ExportFile handleOnExport={this.handleOnExport.bind(this)} />
-          <DeleteFile handleOnDelete={this.handleOnDelete.bind(this)} />
-          <UploadFile
-            handleOnUpload={this.handleOnUpload.bind(this)}
-            handleOnUploadChange={this.handleOnUploadChange.bind(this)}
-          />
-          <label id="statusLabel">{this.state.labelValue}</label>
-        </ul>
+      <div>
+        <h2>File Manager</h2>
+        <br></br>
+        <div className="card">
+          <ul className="list-group">
+            {this.tableComponent()}
+            <div className="groupButtons">
+              <UploadFile
+                handleOnUpload={this.handleOnUpload.bind(this)}
+                handleOnUploadChange={this.handleOnUploadChange.bind(this)}
+              />
+              <div className="otherButtons">
+                <ExportFile handleOnExport={this.handleOnExport.bind(this)} />
+                <DeleteFile handleOnDelete={this.handleOnDelete.bind(this)} />
+              </div>
+              <br></br>
+            </div>
+            <label id="statusLabel">{this.state.labelValue}</label>
+          </ul>
+        </div>
       </div>
     );
   }

@@ -1,6 +1,4 @@
 import React from 'react';
-// import Home from './pages/home';
-// import Login from './pages/login';
 import Time from './pages/time';
 import Sprint from './pages/sprint';
 import Files from './pages/files';

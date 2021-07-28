@@ -76,3 +76,22 @@ h6 {
 label {
   white-space: pre-wrap;
 }
+
+.groupButtons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.fileButton {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.upload {
+  width: 50%;
+}
+
+.otherButtons {
+  width: 50%;
+  text-align: right;
+}

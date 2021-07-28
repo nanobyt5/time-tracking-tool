@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-import {Button, DatePicker, Drawer, Select} from "antd";
+import { Button, DatePicker, Drawer, Select } from "antd";
 import { FormLabel, Grid } from "@material-ui/core";
 import DataGrid, {
-  Column, ColumnChooser,
+  Column,
+  ColumnChooser,
   Export,
   Grouping,
-  GroupItem, Scrolling, SearchPanel,
+  GroupItem,
+  Scrolling,
+  SearchPanel,
   Selection,
   Summary,
   TotalItem,
@@ -23,7 +26,9 @@ import moment from "moment";
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
-//Use as default for time table
+/**
+ * Columns to show in time table
+ */
 const COLUMNS = [
   {
     dataField: "date",
@@ -69,10 +74,12 @@ const COLUMNS = [
     dataField: "hours",
     dataType: "number",
     toGroup: false,
-  }
+  },
 ];
 
-//All options for grouping the data provided
+/**
+ * All options for grouping the data provided
+ */
 const GROUP_METHODS = [
   { value: "", label: "All" },
   { value: "activity", label: "Activity" },
@@ -80,7 +87,7 @@ const GROUP_METHODS = [
   { value: "sprint", label: "Sprint" },
   { value: "tags", label: "Tags" },
   { value: "team", label: "Team" },
-  { value: "planned", label: "Planned" }
+  { value: "planned", label: "Planned" },
 ];
 
 const INITIAL_GROUP_BY = "tags";
@@ -213,8 +220,10 @@ function Time() {
     }
 
     let isDateAccepted = date <= endDate && date >= startDate;
-    let isTeamAccepted = teamsFilter.length === 0 || teamsFilter.includes(entryTeam);
-    let isMemberAccepted = membersFilter.length === 0 || membersFilter.includes(user);
+    let isTeamAccepted =
+      teamsFilter.length === 0 || teamsFilter.includes(entryTeam);
+    let isMemberAccepted =
+      membersFilter.length === 0 || membersFilter.includes(user);
     let isActivityAccepted =
       activitiesFilter.length === 0 || activitiesFilter.includes(entryActivity);
     let areTagsAccepted = tagsFilter.length === 0;
@@ -227,7 +236,11 @@ function Time() {
     }
 
     return (
-      isDateAccepted && isActivityAccepted && areTagsAccepted && isMemberAccepted && isTeamAccepted
+      isDateAccepted &&
+      isActivityAccepted &&
+      areTagsAccepted &&
+      isMemberAccepted &&
+      isTeamAccepted
     );
   };
 
@@ -249,7 +262,7 @@ function Time() {
           hours: entry["Hours"],
           tags: entry["Tags"],
           storyPoints: entry["Story Points"],
-          planned: entry["Unplanned"] === "No" ? "Yes" : "No"
+          planned: entry["Unplanned"] === "No" ? "Yes" : "No",
         });
       }
     });
@@ -316,7 +329,7 @@ function Time() {
    * Capitalises the first letter of the groupBy.
    */
   const capitalizeGroupBy = () => {
-    return groupBy.slice(0, 1).toUpperCase() + groupBy.slice(1, groupBy.length)
+    return groupBy.slice(0, 1).toUpperCase() + groupBy.slice(1, groupBy.length);
   };
 
   useEffect(() => {
@@ -345,7 +358,9 @@ function Time() {
         tokenSeparators={[","]}
       >
         {options.map((option) => (
-          <Option key={option} value={option}>{option}</Option>
+          <Option key={option} value={option}>
+            {option}
+          </Option>
         ))}
       </Select>
     </div>
@@ -361,7 +376,9 @@ function Time() {
         style={{ width: "60%" }}
       >
         {options.map((option) => (
-          <Option key={option["value"]} value={option["value"]}>{option["label"]}</Option>
+          <Option key={option["value"]} value={option["value"]}>
+            {option["label"]}
+          </Option>
         ))}
       </Select>
     </div>
@@ -371,7 +388,9 @@ function Time() {
     <div className="importButton">
       <Button
         size="medium"
-        onClick={ () => {setImportDrawerVisibility(true)} }
+        onClick={() => {
+          setImportDrawerVisibility(true);
+        }}
       >
         Import
       </Button>
@@ -380,13 +399,15 @@ function Time() {
         placement="right"
         width="450"
         closable={false}
-        onClose={ () => {setImportDrawerVisibility(false)} }
-        visible={ importDrawerVisibility }
+        onClose={() => {
+          setImportDrawerVisibility(false);
+        }}
+        visible={importDrawerVisibility}
       >
         <S3FileCheckbox />
       </Drawer>
     </div>
-  )
+  );
 
   const datePickerRow = () => (
     <div className="datePickerRow">
@@ -399,66 +420,63 @@ function Time() {
   );
 
   const dataGridComponent = () => (
-      <div>
-        <DataGrid
-            height="65vh"
-            dataSource={data}
-            showBorders={true}
-            wordWrapEnabled={true}
-            allowColumnReordering={true}
-            style={{ margin: 5 }}
-        >
-          <SearchPanel visible={true} />
-          <ColumnChooser
-              enabled={true}
-              mode="select"
-          />
-          <Grouping
-              autoExpandAll={true}
-              texts={{ groupByThisColumn: {groupBy} }}
-              expandMode="rowClick"
-          />
-          <Selection mode="single" />
-          <Scrolling mode="virtual" />
+    <div>
+      <DataGrid
+        height="65vh"
+        dataSource={data}
+        showBorders={true}
+        wordWrapEnabled={true}
+        allowColumnReordering={true}
+        style={{ margin: 5 }}
+      >
+        <SearchPanel visible={true} />
+        <ColumnChooser enabled={true} mode="select" />
+        <Grouping
+          autoExpandAll={true}
+          texts={{ groupByThisColumn: { groupBy } }}
+          expandMode="rowClick"
+        />
+        <Selection mode="single" />
+        <Scrolling mode="virtual" />
 
-          {columns.map(({ toGroup, dataField, dataType }) =>
-              toGroup ? (
-                  <Column
-                      key={dataField}
-                      dataField={dataField}
-                      dataType={dataType}
-                      alignment={"center"}
-                      groupIndex={0}
-                  />
-              ) : (
-                  <Column
-                      key={dataField}
-                      dataField={dataField}
-                      dataType={dataType}
-                      alignment={"center"}
-                  />
-              )
-          )}
-
-          <Summary>
-            <GroupItem
-                column="hours"
-                summaryType="sum"
-                displayFormat="{0}hrs"
-                valueFormat="#.###"
-                alignByColumn={true}
+        {columns.map(({ toGroup, dataField, dataType }) =>
+          toGroup ? (
+            <Column
+              key={dataField}
+              dataField={dataField}
+              dataType={dataType}
+              alignment={"center"}
+              groupIndex={0}
             />
-            <TotalItem
-                column="hours"
-                summaryType="sum"
-                displayFormat="Total: {0}hrs"
-                valueFormat="#.###"
+          ) : (
+            <Column
+              key={dataField}
+              dataField={dataField}
+              dataType={dataType}
+              alignment={"center"}
             />
-          </Summary>
+          )
+        )}
 
-          <Export enabled={true} />
-        </DataGrid>
-      </div>
+        <Summary>
+          <GroupItem
+            column="hours"
+            summaryType="sum"
+            displayFormat="{0}hrs"
+            valueFormat="#.###"
+            alignByColumn={true}
+          />
+          <TotalItem
+            column="hours"
+            summaryType="sum"
+            displayFormat="Total: {0}hrs"
+            valueFormat="#.###"
+          />
+        </Summary>
+
+        <Export enabled={true} />
+      </DataGrid>
+    </div>
   );
 
   const firstRowComponent = () => (
