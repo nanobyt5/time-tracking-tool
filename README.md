@@ -1,4 +1,4 @@
-# TIME TRACKING TOOL
+# Time Tracking Tool
 
 Created by [Nazryl Lim](https://www.linkedin.com/in/nazryllim/), [Marcus Ong](https://www.linkedin.com/in/marcus-ong-25205618b) and [Janessa Tng](https://www.linkedin.com/in/janessatng).
 
