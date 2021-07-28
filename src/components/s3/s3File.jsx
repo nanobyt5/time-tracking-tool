@@ -1,11 +1,20 @@
 import React, { Component } from "react";
-import AWS from "aws-sdk";
 import FileSaver from "file-saver";
 import DeleteFile from "./deleteFile";
 import UploadFile from "./uploadFile";
 import ExportFile from "./exportFile";
 import * as XLSX from "xlsx";
 import { Table } from "antd";
+import AWS from "aws-sdk";
+
+/**
+ * SENSITIVE CREDENTIALS
+ */
+AWS.config.update({
+  accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
+  secretAccessKey: "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",
+  region: "ap-southeast-1",
+});
 
 const s3 = new AWS.S3();
 
@@ -123,23 +132,19 @@ class S3File extends Component {
       Body: JSON.stringify(jsonFile),
     };
 
-    if (window.confirm("Are you sure you want to upload " + params.Key + "?")) {
-      s3.putObject(params, (err, data) => {
-        if (data) {
-          console.log(params.Key + " uploaded successfully.");
-          this.getListS3();
-        } else {
-          console.log("Error: " + err);
-        }
-      });
+    s3.putObject(params, (err, data) => {
+      if (data) {
+        this.getListS3();
+      } else {
+        console.log("Error: " + err);
+        this.setState({ labelValue: params.Key + " not uploaded." });
+      }
+    });
 
-      this.setState({
-        labelValue: params.Key + " upload successfully.",
-        selectedFile: null,
-      });
-    } else {
-      this.setState({ labelValue: params.Key + " not uploaded." });
-    }
+    this.setState({
+      labelValue: params.Key + " upload successfully.",
+      selectedFile: null,
+    });
   }
 
   /**
