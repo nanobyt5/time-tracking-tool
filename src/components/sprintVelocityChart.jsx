@@ -6,13 +6,14 @@ import DataGrid, {
   Column,
   Editing,
   Grouping,
-  GroupItem, Scrolling,
+  GroupItem,
+  Scrolling,
   Selection,
   Summary,
 } from "devextreme-react/data-grid";
 
 import "../css/sprintVelocityChart.css";
-import {Button, Drawer, Form, Input, Modal, Table} from "antd";
+import { Button, Drawer, Form, Input, Modal, Table } from "antd";
 import AWS from "aws-sdk";
 
 const HOURS_PER_DAY = 8;
@@ -33,10 +34,10 @@ const s3SprintParams = {
 
 const S3_COLUMNS = [
   {
-    title: 'File Name',
-    dataIndex: 'key'
-  }
-]
+    title: "File Name",
+    dataIndex: "key",
+  },
+];
 
 /**
  * Creates the sprint velocity page. It has states: sprints, data for bar, line charts, and table.
@@ -68,7 +69,7 @@ function SprintVelocityChart() {
       let totalStoryPoints = 0;
       let j = 0;
 
-      Object.keys(currSprint).forEach(name => {
+      Object.keys(currSprint).forEach((name) => {
         let currMember = currSprint[name];
         let hours = currMember["hours"];
         let storyPoints = currMember["storyPoints"];
@@ -85,7 +86,7 @@ function SprintVelocityChart() {
           storyPoints: storyPoints,
           velocity: velocity,
         });
-      })
+      });
 
       let totalVelocity = totalStoryPoints / (totalCapacity / HOURS_PER_DAY);
 
@@ -235,9 +236,9 @@ function SprintVelocityChart() {
     );
     let oldData = newTableData[index];
 
-    Object.keys(edit).forEach(key => {
+    Object.keys(edit).forEach((key) => {
       dataToChange[key] = edit[key];
-    })
+    });
 
     dataToChange["velocity"] =
       dataToChange["storyPoints"] / (dataToChange["capacity"] / HOURS_PER_DAY);
@@ -273,7 +274,7 @@ function SprintVelocityChart() {
 
     uploadToS3(values["exportFileName"]);
     setExportButtonVisibility(false);
-  }
+  };
 
   /**
    * Handles the data selected by the user to be shown in the page.
@@ -329,36 +330,34 @@ function SprintVelocityChart() {
     let newBarData = [];
     let newLineData = [];
 
-    sprints.forEach(sprint => {
+    sprints.forEach((sprint) => {
       let currSprint = importedData[sprint];
       let capacity = currSprint["capacity"];
       let storyPoints = currSprint["storyPoints"];
       let velocity = storyPoints / (capacity / HOURS_PER_DAY);
 
       newBarData.push(
-          {
-            sprint: sprint,
-            value: capacity,
-            type: "Capacity"
-          },
-          {
-            sprint: sprint,
-            value: storyPoints,
-            type: "Completed Story Points"
-          }
+        {
+          sprint: sprint,
+          value: capacity,
+          type: "Capacity",
+        },
+        {
+          sprint: sprint,
+          value: storyPoints,
+          type: "Completed Story Points",
+        }
       );
 
-      newLineData.push(
-          {
-            sprint: sprint,
-            velocity: velocity
-          }
-      );
+      newLineData.push({
+        sprint: sprint,
+        velocity: velocity,
+      });
     });
 
     setBarData(newBarData);
     setLineData(newLineData);
-  }
+  };
 
   /**
    * Use the imported data from s3 and mutate it to fit the data used for the sprint velocity table
@@ -367,7 +366,7 @@ function SprintVelocityChart() {
   const getChartDataFromImport = (importedData, sprints) => {
     let lookUp = {};
 
-    importedData.forEach(entry => {
+    importedData.forEach((entry) => {
       let sprint = entry["sprint"];
       let capacity = entry["capacity"];
       let storyPoints = entry["storyPoints"];
@@ -375,7 +374,7 @@ function SprintVelocityChart() {
       if (!(sprint in lookUp)) {
         lookUp[sprint] = {
           capacity: capacity,
-          storyPoints: storyPoints
+          storyPoints: storyPoints,
         };
       } else {
         let currSprint = lookUp[sprint];
@@ -385,7 +384,7 @@ function SprintVelocityChart() {
     });
 
     updateChartWithImportData(lookUp, sprints);
-  }
+  };
 
   /**
    * Handles the file being imported from the s3.
@@ -395,7 +394,7 @@ function SprintVelocityChart() {
     let sprints = [];
     let id = 1;
 
-    s3ImportedFiles.forEach(file => {
+    s3ImportedFiles.forEach((file) => {
       let sprint = file["sprint"];
       if (!(sprint in sprintsLookUp)) {
         sprints.push(sprint);
@@ -406,14 +405,14 @@ function SprintVelocityChart() {
       file["capacity"] = parseFloat(file["capacity"]);
       file["storyPoints"] = parseFloat(file["storyPoints"]);
       file["velocity"] = parseFloat(file["velocity"]);
-    })
+    });
 
     sprints.sort();
 
     setSprints(sprints);
     setTableData(s3ImportedFiles);
     getChartDataFromImport(s3ImportedFiles, sprints);
-  }
+  };
 
   /**
    * Uploads the table data into s3.
@@ -425,10 +424,10 @@ function SprintVelocityChart() {
 
     const params = {
       Bucket: "time-tracking-storage",
-      Key: 'sprint/' + name + '_' + new Date().toISOString(),
-      ContentType: 'json',
-      Body: JSON.stringify(tableData)
-    }
+      Key: "sprint/" + name + "_" + new Date().toISOString(),
+      ContentType: "json",
+      Body: JSON.stringify(tableData),
+    };
 
     s3.putObject(params, (err, data) => {
       if (data) {
@@ -436,8 +435,8 @@ function SprintVelocityChart() {
       } else {
         console.log("Error:", err);
       }
-    })
-  }
+    });
+  };
 
   /**
    * Get all the files with the "sprint/" prefix from the s3 bucket.
@@ -449,16 +448,16 @@ function SprintVelocityChart() {
         setS3Data([]);
       } else {
         let id = 1;
-        let s3Data = data.Contents.map(content => {
+        let s3Data = data.Contents.map((content) => {
           return {
             id: id++,
-            key: content["Key"]
-          }
+            key: content["Key"],
+          };
         });
         setS3Data(s3Data);
       }
-    })
-  }
+    });
+  };
 
   /**
    * Creates a promise that imports the file with the same key input from s3.
@@ -475,14 +474,14 @@ function SprintVelocityChart() {
           let content = JSON.parse(data.Body.toString());
           resolve({
             key: key,
-            content: content
+            content: content,
           });
         } else {
           console.log("Err", err);
         }
-      })
+      });
     });
-  }
+  };
 
   /**
    * Handles the behavior when a row is selected from the drawer.
@@ -501,21 +500,20 @@ function SprintVelocityChart() {
     if (isSelected) {
       let promise = importPromiseFromS3(key);
 
-      promise
-          .then((file) => {
-            newSelectedData.push(file)
-            setSelectedData(newSelectedData);
+      promise.then((file) => {
+        newSelectedData.push(file);
+        setSelectedData(newSelectedData);
 
-            newTableData.push(file["content"]);
-            onImport(newTableData.flat(2));
-          })
+        newTableData.push(file["content"]);
+        onImport(newTableData.flat(2));
+      });
     } else {
-      newSelectedData = newSelectedData.filter(item => item["key"] !== key);
+      newSelectedData = newSelectedData.filter((item) => item["key"] !== key);
       setSelectedData(newSelectedData);
-      newTableData = newSelectedData.map(item => item["content"]).flat(2);
+      newTableData = newSelectedData.map((item) => item["content"]).flat(2);
       onImport(newTableData);
     }
-  }
+  };
 
   /**
    * Handles the behavior when all the rows are selected or deselected.
@@ -529,26 +527,26 @@ function SprintVelocityChart() {
     if (isSelected) {
       let promises = [];
       changedRows.forEach(({ key }) => {
-        promises.push(importPromiseFromS3(key))
-      })
+        promises.push(importPromiseFromS3(key));
+      });
 
       Promise.all(promises)
-          .then(files => {
-            newSelectedData.push(files);
+        .then((files) => {
+          newSelectedData.push(files);
 
-            files.forEach(({ content }) => {
-              newTableData.push(content)
-            })
-          })
-          .then(() => {
-              setSelectedData(newSelectedData);
-              onImport(newTableData.flat(2));
-          })
+          files.forEach(({ content }) => {
+            newTableData.push(content);
+          });
+        })
+        .then(() => {
+          setSelectedData(newSelectedData);
+          onImport(newTableData.flat(2));
+        });
     } else {
       setSelectedData(newSelectedData);
       onImport([]);
     }
-  }
+  };
 
   /**
    * Defines the behavior of the row selection for sprint velocity drawer.
@@ -560,7 +558,7 @@ function SprintVelocityChart() {
     onSelectAll: (isSelected, selectedRows, changedRows) => {
       onS3RowSelectAll(isSelected, changedRows);
     },
-  }
+  };
 
   /**
    * Before mount, get all files with sprint prefix from s3.
@@ -577,16 +575,16 @@ function SprintVelocityChart() {
   }, [StateStore.jsonFiles.length]);
 
   const s3TableComponent = () => (
-      <div>
-        <Table
-          rowSelection={{
-            ...s3RowSelection
-          }}
-          columns={ S3_COLUMNS }
-          dataSource={ s3Data }
-        />
-      </div>
-  )
+    <div>
+      <Table
+        rowSelection={{
+          ...s3RowSelection,
+        }}
+        columns={S3_COLUMNS}
+        dataSource={s3Data}
+      />
+    </div>
+  );
 
   /**
    * Config used for bar and line charts.
@@ -622,77 +620,79 @@ function SprintVelocityChart() {
   const SaveToS3Form = () => {
     const [form] = Form.useForm();
     return (
-        <Modal
-          visible={exportButtonVisibility}
-          title="Saving the sprint velocity file"
-          okText="Save"
-          cancelText="Cancel"
-          onCancel={() => setExportButtonVisibility(false)}
-          onOk={() => {
-            form
-                .validateFields()
-                .then((values) => {
-                  form.resetFields();
-                  onSave(values);
-                })
-                .catch((error) => {
-                  console.log("Save Failed:", error);
-                })
-          }}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            name="export_form"
+      <Modal
+        visible={exportButtonVisibility}
+        title="Saving the sprint velocity file"
+        okText="Save"
+        cancelText="Cancel"
+        onCancel={() => setExportButtonVisibility(false)}
+        onOk={() => {
+          form
+            .validateFields()
+            .then((values) => {
+              form.resetFields();
+              onSave(values);
+            })
+            .catch((error) => {
+              console.log("Save Failed:", error);
+            });
+        }}
+      >
+        <Form form={form} layout="vertical" name="export_form">
+          <Form.Item
+            name="exportFileName"
+            label="File Name"
+            rules={[
+              {
+                required: true,
+                message: "Please input the name of the file!",
+              },
+            ]}
           >
-            <Form.Item
-              name="exportFileName"
-              label="File Name"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input the name of the file!",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-          </Form>
-        </Modal>
-    )
-  }
+            <Input />
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  };
 
   const importExportComponents = () => (
-      <div className="importAndExport">
-        <div className="importButton">
-          <Button
-            size="medium"
-            onClick={ () => {setImportDrawerVisibility(true)} }
-          >
-            Import
-          </Button>
-          <Drawer
-            title="Import From S3"
-            placement="right"
-            width="450"
-            closable={false}
-            onClose={ () => {setImportDrawerVisibility(false)} }
-            visible={importDrawerVisibility}
-          >
-            {s3TableComponent()}
-          </Drawer>
-        </div>
-        <div className="saveButton">
-          <Button
-              size="medium"
-              onClick={() => {setExportButtonVisibility(true)}}
-          >
-            Save
-          </Button>
-          {SaveToS3Form()}
-        </div>
+    <div className="importAndExport">
+      <div className="importButton">
+        <Button
+          size="medium"
+          onClick={() => {
+            setImportDrawerVisibility(true);
+          }}
+        >
+          Import
+        </Button>
+        <Drawer
+          title="Import From S3"
+          placement="right"
+          width="450"
+          closable={false}
+          onClose={() => {
+            setImportDrawerVisibility(false);
+          }}
+          visible={importDrawerVisibility}
+        >
+          {s3TableComponent()}
+        </Drawer>
       </div>
-  )
+      <div className="saveButton">
+        <Button
+          size="medium"
+          onClick={() => {
+            setExportButtonVisibility(true);
+          }}
+        >
+          Save
+        </Button>
+        {SaveToS3Form()}
+      </div>
+    </div>
+  );
 
   const titleComponent = () => (
     <div className="titleComponent">
@@ -710,10 +710,10 @@ function SprintVelocityChart() {
   const dataGridComponent = () => (
     <div className="dataGrid">
       <DataGrid
-          id="gridContainer"
-          dataSource={tableData}
-          showBorders={true}
-          height="50vh"
+        id="gridContainer"
+        dataSource={tableData}
+        showBorders={true}
+        height="50vh"
       >
         <Selection mode="single" />
         <Grouping autoExpandAll={true} />
