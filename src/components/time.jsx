@@ -143,8 +143,14 @@ function Time() {
     const tags = [];
 
     db.forEach((entry) => {
-      const tagsFromEntry = entry["Tags"];
-      tagsFromEntry.split(",").forEach((tag) => {
+      let tagsFromEntry = entry["Tags"];
+
+      if (!tagsFromEntry) {
+        tagsFromEntry = [];
+      } else {
+        tagsFromEntry = tagsFromEntry.split(",");
+      }
+      tagsFromEntry.forEach((tag) => {
         tag = tag.trim();
         if (tag === "") {
           return;
@@ -213,11 +219,13 @@ function Time() {
     const entryTeam = entry["Team"];
     const user = entry["Member"];
     const entryActivity = entry["Activity"];
-    const entryTags = entry["Tags"].split(",");
+    let entryTags = entry["Tags"];
 
-    if (!date || !entryTeam || !user || !entryActivity) {
+    if (!date || !entryTeam || !user || !entryActivity || !entryTags) {
       return false;
     }
+
+    entryTags.split(",");
 
     let isDateAccepted = date <= endDate && date >= startDate;
     let isTeamAccepted =
