@@ -43,7 +43,7 @@ create-react-app 'project-name'
 npm start
 ```
 
-### VS Code
+### Visual Studio Code
 
 Install Bootstrap for CSS\
 Open terminal in VS Code
@@ -78,7 +78,6 @@ Install Chart and Table
 ```
 npm install @ant-design/charts
 npm install devextreme@21.1 devextreme-react@21.1
-
 ```
 
 Install Slider, filter options and import/export
@@ -107,7 +106,7 @@ Install S3 Bucket Commands
 npm i aws-sdk
 ```
 
-Install Convert data to CSV
+Install Convert data back to CSV
 
 ```
 npm i file-saver
@@ -156,6 +155,7 @@ npm i file-saver
 
 ### Connect to S3 time-tracking-tool Bucket
 
+This allows developers to upload built project straight into S3 bucket without manually uploading the files.\
 Add Deploy NPM Script (Add to package.json under `scripts`)
 
 ```
