@@ -7,15 +7,6 @@ import ExportFile from "./exportFile";
 import * as XLSX from "xlsx";
 import { Table } from "antd";
 
-/**
- * Declare AWS account Credentials
- */
-// AWS.config.update({
-//   accessKeyId: "AKIAZEGOI2Y3KR4S3SPT",
-//   secretAccessKey: "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",
-//   region: "ap-southeast-1",
-// });
-
 const s3 = new AWS.S3();
 
 /**
@@ -70,17 +61,6 @@ class S3File extends Component {
     });
   }
 
-  async uploadInS3(params) {
-    s3.putObject(params, (err, data) => {
-      if (data) {
-        console.log(params.Key + " uploaded successfully.");
-        this.getListS3();
-      } else {
-        console.log("Error: " + err);
-      }
-    });
-  }
-
   /**
    * Export file from S3 bucket
    */
@@ -100,7 +80,13 @@ class S3File extends Component {
       if (data) {
         let json = JSON.parse(data.Body.toString());
         let csv = convertJsonToCsv(json);
-        const filename = params.Key;
+        let filename = "";
+        if (params.Key.includes("time/")) {
+          filename = params.Key.replace("time/", "");
+        } else {
+          filename = params.Key.replace("sprint/", "");
+        }
+
         let blob = new Blob([csv], {
           type: "",
         });
@@ -138,8 +124,13 @@ class S3File extends Component {
     };
 
     if (window.confirm("Are you sure you want to upload " + params.Key + "?")) {
-      this.uploadInS3(params).then(() => {
-        console.log("success");
+      s3.putObject(params, (err, data) => {
+        if (data) {
+          console.log(params.Key + " uploaded successfully.");
+          this.getListS3();
+        } else {
+          console.log("Error: " + err);
+        }
       });
 
       this.setState({
@@ -303,17 +294,26 @@ class S3File extends Component {
 
   render() {
     return (
-      <div className="card">
-        <ul className="list-group">
-          {this.tableComponent()}
-          <ExportFile handleOnExport={this.handleOnExport.bind(this)} />
-          <DeleteFile handleOnDelete={this.handleOnDelete.bind(this)} />
-          <UploadFile
-            handleOnUpload={this.handleOnUpload.bind(this)}
-            handleOnUploadChange={this.handleOnUploadChange.bind(this)}
-          />
-          <label id="statusLabel">{this.state.labelValue}</label>
-        </ul>
+      <div>
+        <h2>File Manager</h2>
+        <br></br>
+        <div className="card">
+          <ul className="list-group">
+            {this.tableComponent()}
+            <div className="groupButtons">
+              <UploadFile
+                handleOnUpload={this.handleOnUpload.bind(this)}
+                handleOnUploadChange={this.handleOnUploadChange.bind(this)}
+              />
+              <div className="otherButtons">
+                <ExportFile handleOnExport={this.handleOnExport.bind(this)} />
+                <DeleteFile handleOnDelete={this.handleOnDelete.bind(this)} />
+              </div>
+              <br></br>
+            </div>
+            <label id="statusLabel">{this.state.labelValue}</label>
+          </ul>
+        </div>
       </div>
     );
   }

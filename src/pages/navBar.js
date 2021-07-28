@@ -17,7 +17,7 @@ function NavBar() {
                     <li>Sprint Velocity</li>
                 </NavLink>
                 <NavLink activeStyle={boldStyle} to="/files">
-                    <li>Uploaded Files</li>
+                    <li>File Manager</li>
                 </NavLink>
             </ul>
         </nav>

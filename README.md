@@ -156,8 +156,9 @@ npm i file-saver
 ### Connect to S3 time-tracking-tool Bucket
 
 This allows developers to upload built project straight into S3 bucket without manually uploading the files.\
-Add Deploy NPM Script (Add to package.json under `scripts`)
+Add Deploy NPM Script (Add to package.json under `scripts`)\
+Change BUCKETNAME to your bucket name
 
 ```
-"deploy": "react-scripts build && aws s3 sync build s3://bucket-name"
+"deploy": "react-scripts build && aws s3 sync build s3://BUCKETNAME"
 ```
