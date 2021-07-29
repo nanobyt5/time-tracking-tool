@@ -1,6 +1,6 @@
 # Time Tracking Tool
 
-Created by [Nazryl Lim](https://www.linkedin.com/in/nazryllim/), [Marcus Ong](https://www.linkedin.com/in/marcus-ong-25205618b) and [Janessa Tng](https://www.linkedin.com/in/janessatng).
+Created by [Nazryl Lim](https://www.linkedin.com/in/nazryllim/) | [Marcus Ong](https://www.linkedin.com/in/marcus-ong-25205618b) | [Janessa Tng](https://www.linkedin.com/in/janessatng)
 
 ## Introduction
 
@@ -118,7 +118,7 @@ npm i file-saver
 2. Create a Bucket
 3. Keep settings by default
 4. Uncheck **Block all public access**
-5. Set Bucket policy (Change BUCKETNAME to your bucket name)
+5. Set **Bucket policy** (Change `BUCKETNAME` to your bucket name)
 
 ```
 {
@@ -153,20 +153,26 @@ npm i file-saver
 ]
 ```
 
-### Connect to S3 time-tracking-tool Bucket
+### Upload site to S3 time-tracking-tool Bucket
 
-Complete AWS CLI setup.\
-This allows developers to upload built project straight into S3 bucket without manually uploading the files.\
-Add Deploy NPM Script (Add to package.json under `scripts`)\
-Change BUCKETNAME to your bucket name
+1. Upload from VS Code\
+   Complete AWS CLI setup.\
+   This allow developers to upload built project straight into S3 bucket without manually uploading the files.\
+   a. Add Deploy NPM Script (Add to package.json under `scripts`)\
+   b. Change `BUCKETNAME` to your bucket name
 
 ```
 "deploy": "react-scripts build && aws s3 sync build s3://BUCKETNAME"
 ```
 
+2. OR Upload site manually\
+   a. Select bucket\
+   b. Clear bucket contents\
+   c. Upload contents from `"PROJECTNAME\build"` folder
+
 ### Retrieve Time Tracking Tool site link
 
-1. Go to time-tracking-tool bucket.
+1. Go to time-tracking-tool bucket
 2. Properties
 3. Static website hosting link
    http://time-tracking-tool.s3-website-ap-southeast-1.amazonaws.com/
